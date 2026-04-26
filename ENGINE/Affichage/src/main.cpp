@@ -17,11 +17,7 @@ typedef enum {None_Resource,tree,gold,Sapling}RESOURCE;
 
 typedef enum {None_Unit,archer,MONK}UNIT;
 
-typedef struct{
-    TERRAIN type_terrain;
-    STRUCTURE type_struct;
-    UNIT type_unit;
-}CARRE;
+
 
 typedef struct MAP{
     CARRE tab[X_Max][Y_Max];
@@ -43,11 +39,11 @@ void draw_rectangle_not_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, 
 typedef enum { None1, Usine, Production, Resource } STRUCTURE;
 typedef enum { None2, soldier, archer, MONK } UNIT;
 
-typedef struct {
-    int type_terrain;
+typedef struct{
+    TERRAIN type_terrain;
     STRUCTURE type_struct;
     UNIT type_unit;
-} CARRE;
+}CARRE;
 
 using MAP = std::vector<std::vector<CARRE>>;
 
