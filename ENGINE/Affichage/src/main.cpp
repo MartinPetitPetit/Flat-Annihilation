@@ -8,6 +8,27 @@
 #include <cstdlib>
 #include <ctime>
 
+/*
+#define X_Max 20
+#define Y_Max 20
+typedef enum {Plain,Montain,Lake,Bush,ravine}TERRAIN;// 0plain ;1 montain ;2 lake ,3 tree ; 4 gold
+typedef enum {None_Struct,Usine,Production,Resource}STRUCTURE;
+typedef enum {None_Resource,tree,gold,Sapling}RESOURCE;
+
+typedef enum {None_Unit,archer,MONK}UNIT;
+
+typedef struct{
+    TERRAIN type_terrain;
+    STRUCTURE type_struct;
+    UNIT type_unit;
+}CARRE;
+
+typedef struct MAP{
+    CARRE tab[X_Max][Y_Max];
+}MAP;
+*/
+
+
 
 template<typename T> constexpr T WIDTHSCREEN{ 800 };
 template<typename T> constexpr T HEIGHTSCREEN{ 600 };
