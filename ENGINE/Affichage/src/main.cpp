@@ -4,6 +4,10 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+
 
 template<typename T> constexpr T WIDTHSCREEN{ 800 };
 template<typename T> constexpr T HEIGHTSCREEN{ 600 };
@@ -238,4 +242,127 @@ void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
     rect->w = surface->w;
     rect->h = surface->h;
     SDL_FreeSurface(surface);
+}
+////////////----------------------------------------------------------------------------------------------------------
+
+
+MAP cree_map(int width, int height)
+{
+    MAP map(width, std::vector<CARRE>(height));
+
+    return map;
+}
+
+void generate_map(MAP& map)
+{
+    static bool srand_already_called = false;
+
+    if (!srand_already_called) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        srand_already_called = true;
+    }
+
+    int width = static_cast<int>(map.size());
+
+    if (width == 0) {
+        return;
+    }
+
+    int height = static_cast<int>(map[0].size());
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            map[x][y].type_terrain = static_cast<TERRAIN>(std::rand() % 5);
+            map[x][y].type_struct = None1;
+            map[x][y].type_unit = None2;
+        }
+    }
+}
+
+void affiche_map(const MAP& map)
+{
+    int width = static_cast<int>(map.size());
+
+    if (width == 0) {
+        return;
+    }
+
+    int height = static_cast<int>(map[0].size());
+
+    for (int x = 0; x < width; x++) {
+        std::cout << "|";
+        for (int y = 0; y < height; y++) {
+            std::cout << " " << map[x][y].type_terrain << " |";
+        }
+        std::cout << std::endl;
+    }
+}
+
+int rac_TERRAIN_size_rec(
+    const MAP& map,
+    int x,
+    int y,
+    TERRAIN type_,
+    std::vector<std::vector<int>>& visited
+)
+{
+    int width = static_cast<int>(map.size());
+
+    if (width == 0) {
+        return 0;
+    }
+
+    int height = static_cast<int>(map[0].size());
+
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return 0;
+    }
+
+    if (visited[x][y] == 1) {
+        return 0;
+    }
+
+    if (map[x][y].type_terrain != type_) {
+        return 0;
+    }
+
+    visited[x][y] = 1;
+
+    int total = 1;
+
+    total += rac_TERRAIN_size_rec(map, x + 1, y,     type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y,     type_, visited);
+    total += rac_TERRAIN_size_rec(map, x,     y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x,     y - 1, type_, visited);
+
+    total += rac_TERRAIN_size_rec(map, x + 1, y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x + 1, y - 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y - 1, type_, visited);
+
+    return total;
+}
+
+int terrain_size(const MAP& map, int x, int y)
+{
+    int width = static_cast<int>(map.size());
+
+    if (width == 0) {
+        return 0;
+    }
+
+    int height = static_cast<int>(map[0].size());
+
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return 0;
+    }
+
+    std::vector<std::vector<int>> visited(
+        width,
+        std::vector<int>(height, 0)
+    );
+
+    TERRAIN terrain_atual = map[x][y].type_terrain;
+
+    return rac_TERRAIN_size_rec(map, x, y, terrain_atual, visited);
 }
