@@ -1,85 +1,151 @@
 #include "map.hpp"
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include <queue>  // Pour la version itérative
 
 MAP create_map(int width, int height)
 {
-    CARRE empty_cell{ Plain, None1, None2 };
-    return MAP(width, std::vector<CARRE>(height, empty_cell));
+    MAP map(width, std::vector<CARRE>(height));
+
+    return map;
 }
 
-void generate_map(MAP& map)
+bool in_map(const MAP& map, int x, int y)
 {
-    static bool seeded = false;
-    if (!seeded) {
-        std::srand(static_cast<unsigned int>(std::time(nullptr)));
-        seeded = true;
+    if (map.empty()) {
+        return false;
     }
 
-    int width  = static_cast<int>(map.size());
-    int height = static_cast<int>(map[0].size());
+    return x >= 0 &&
+           x < static_cast<int>(map.size()) &&
+           y >= 0 &&
+           y < static_cast<int>(map[0].size());
+}
 
-    for (int x = 0; x < width; x++)
-        for (int y = 0; y < height; y++) {
-            map[x][y].type_terrain = static_cast<TERRAIN>(std::rand() % 5);
-            map[x][y].type_struct  = None1;
-            map[x][y].type_unit    = None2;
-        }
+void set_terrain(MAP& map, int x, int y, TERRAIN terrain)
+{
+    if (in_map(map, x, y)) {
+        map[x][y].type_terrain = terrain;
+    }
 }
 
 void affiche_map(const MAP& map)
 {
-    int width  = static_cast<int>(map.size());
+    if (map.empty()) {
+        return;
+    }
+
+    int width = static_cast<int>(map.size());
     int height = static_cast<int>(map[0].size());
 
-    for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
         std::cout << "|";
-        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
             std::cout << " " << map[x][y].type_terrain << " |";
-        std::cout << "\n";
+        }
+        std::cout << '\n';
     }
 }
 
-// Version ITÉRATIVE (BFS) — remplace la récursion qui stack overflow sur grande map
-int terrain_size(const MAP& map, int x, int y)
+int rac_TERRAIN_size_rec(
+    const MAP& map,
+    int x,
+    int y,
+    TERRAIN type_,
+    std::vector<std::vector<int>>& visited
+)
 {
+    if (!in_map(map, x, y)) {
+        return 0;
+    }
+
+    if (visited[x][y] == 1) {
+        return 0;
+    }
+
+    if (map[x][y].type_terrain != type_) {
+        return 0;
+    }
+
+    visited[x][y] = 1;
+
+    int total = 1;
+
+    total += rac_TERRAIN_size_rec(map, x + 1, y,     type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y,     type_, visited);
+    total += rac_TERRAIN_size_rec(map, x,     y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x,     y - 1, type_, visited);
+
+    total += rac_TERRAIN_size_rec(map, x + 1, y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x + 1, y - 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y + 1, type_, visited);
+    total += rac_TERRAIN_size_rec(map, x - 1, y - 1, type_, visited);
+
+    return total;
+}
+
+
+void generate_map(MAP& map)
+{
+    static bool srand_done = false;
+    if (!srand_done) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        srand_done = true;
+    }
+
+    if (map.empty()) return;
+
     int width  = static_cast<int>(map.size());
     int height = static_cast<int>(map[0].size());
 
-    if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+    // 1. Initialisation : tout en plaine, puis bruit aléatoire de montagnes
+    for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++) {
+            map[x][y].type_struct = None_Struct;
+            map[x][y].type_unit   = None_Unit;
+            // ~20% de chance d'être une montagne au départ
+            map[x][y].type_terrain = (std::rand() % 100 < 70) ? Montain : Plain;
+        }
 
-    TERRAIN target = map[x][y].type_terrain;
+    // 2. Automate cellulaire — plusieurs passes de lissage
+    int iterations = 18; // plus on itère, plus les zones sont grandes et lisses
+    int birth_limit = 6; // nb de voisins montagne pour qu'une plaine devienne montagne
+    int death_limit = 5; // nb de voisins montagne en dessous duquel une montagne meurt
 
-    std::vector<std::vector<bool>> visited(width, std::vector<bool>(height, false));
-    std::queue<std::pair<int,int>> queue;
-
-    queue.push({x, y});
-    visited[x][y] = true;
-    int count = 0;
-
-    // 8 directions (comme ta version récursive)
     const int dx[] = {1,-1,0,0, 1, 1,-1,-1};
     const int dy[] = {0,0,1,-1, 1,-1, 1,-1};
 
-    while (!queue.empty()) {
-        auto [cx, cy] = queue.front();
-        queue.pop();
-        count++;
+    for (int iter = 0; iter < iterations; iter++) {
+        // Copie de la map pour lire l'état N et écrire l'état N+1
+        MAP next = map;
 
-        for (int d = 0; d < 8; d++) {
-            int nx = cx + dx[d];
-            int ny = cy + dy[d];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                // Compter les voisins montagne (8 directions)
+                int mountain_neighbors = 0;
+                for (int d = 0; d < 8; d++) {
+                    int nx = x + dx[d];
+                    int ny = y + dy[d];
+                    if (!in_map(map, nx, ny)) {
+                        // Bord de map compté comme montagne — crée un cadre naturel
+                        mountain_neighbors++;
+                    } else if (map[nx][ny].type_terrain == Montain) {
+                        mountain_neighbors++;
+                    }
+                }
 
-            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-            if (visited[nx][ny]) continue;
-            if (map[nx][ny].type_terrain != target) continue;
-
-            visited[nx][ny] = true;
-            queue.push({nx, ny});
+                if (map[x][y].type_terrain == Montain) {
+                    // Une montagne survit si elle a assez de voisins
+                    next[x][y].type_terrain = (mountain_neighbors >= death_limit)
+                        ? Montain : Plain;
+                } else {
+                    // Une plaine devient montagne si elle a assez de voisins montagne
+                    next[x][y].type_terrain = (mountain_neighbors >= birth_limit)
+                        ? Montain : Plain;
+                }
+            }
         }
+        map = next;
     }
-
-    return count;
 }
