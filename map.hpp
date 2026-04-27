@@ -1,17 +1,17 @@
-
 #ifndef MAP_HPP
 #define MAP_HPP
 
 #include <vector>
 
-constexpr int X_Max = 20;
-constexpr int Y_Max = 20;
+constexpr int X_Max = 50;
+constexpr int Y_Max = 50;
 
+// mountain related
 constexpr int Max_montain_quantity = 4;
-constexpr int Max_montain_size = 4;
-constexpr int thickness_max = 4;
-constexpr int turne_chance_max = 30;
-constexpr int stop_chance_max = 35;
+constexpr int Max_montain_size = 1;
+constexpr int thickness_max = 3;
+constexpr int turne_chance_max = 25;
+constexpr int stop_chance_max = 5;
 constexpr int max_size = 100;
 
 enum TERRAIN {
@@ -68,7 +68,8 @@ struct MONTAIN {
     int DIR;
     int thickness;
     int turne_chance;
-    int stop_chance;
+    float stop_chance;
+    int lateral_noise_chance;
 };
 
 MAP cree_map(int width, int height);
@@ -78,14 +79,7 @@ void affiche_map(const MAP& map);
 bool in_map(const MAP& map, int x, int y);
 void set_terrain(MAP& map, int x, int y, TERRAIN terrain);
 
-int rac_TERRAIN_size_rec(
-    const MAP& map,
-    int x,
-    int y,
-    TERRAIN type_,
-    std::vector<std::vector<int>>& visited
-);
-
-void create_montains(MAP& map, std::vector<MONTAIN>& montains);
+void create_montain(MAP& map, std::vector<MONTAIN>& montains);
+void paint_mountain_brush(MAP& map, int cx, int cy, int thickness);
 
 #endif
