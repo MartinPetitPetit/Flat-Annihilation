@@ -1,3 +1,4 @@
+
 #ifndef MAP_HPP
 #define MAP_HPP
 
@@ -6,11 +7,11 @@
 constexpr int X_Max = 20;
 constexpr int Y_Max = 20;
 
-constexpr int Max_montain_quantity = 4;
-constexpr int Max_montain_size = 4;
-constexpr int thickness_max = 4;
-constexpr int turne_chance_max = 30;
-constexpr int stop_chance_max = 35;
+constexpr int Max_montain_quantity = 30;
+constexpr int Max_montain_size = 10;
+constexpr int thickness_max = 6;
+constexpr int turne_chance_max = 90;
+constexpr int stop_chance_max = 30;
 constexpr int max_size = 100;
 
 enum TERRAIN {
@@ -60,17 +61,8 @@ struct CARRE {
 
 using MAP = std::vector<std::vector<CARRE>>;
 
-struct MONTAIN {
-    int x_init;
-    int y_init;
-    int size;
-    int DIR;
-    int thickness;
-    int turne_chance;
-    int stop_chance;
-};
 
-MAP cree_map(int width, int height);
+MAP create_map(int width, int height);
 void generate_map(MAP& map);
 void affiche_map(const MAP& map);
 
@@ -84,7 +76,5 @@ int rac_TERRAIN_size_rec(
     TERRAIN type_,
     std::vector<std::vector<int>>& visited
 );
-
-void create_montains(MAP& map, std::vector<MONTAIN>& montains);
 
 #endif
