@@ -1,44 +1,41 @@
+#include "display.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include "map.hpp"
-
-/*
-#define X_Max 20
-#define Y_Max 20
-
-typedef enum {None_Struct,Usine,Production,Resource}STRUCTURE;
-typedef enum {None_Resource,tree,gold,Sapling}RESOURCE;
-
-typedef enum {None_Unit,archer,MONK}UNIT;
-
-
-
-typedef struct MAP{
-    CARRE tab[X_Max][Y_Max];
-}MAP;
-*/
-
-
 
 template<typename T> constexpr T WIDTHSCREEN{ 800 };
 template<typename T> constexpr T HEIGHTSCREEN{ 600 };
 
-void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
-        TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect);
-void draw_case_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color);
-void draw_rectangle_not_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color);
-
-int main(int argc, char* argv[])
+void draw_case_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color)
 {
-    const int MAP_W = 3000;
-    const int MAP_H = 3000;
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderFillRect(renderer, &rectangle);
+}
+
+void draw_rectangle_not_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color)
+{
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderDrawRect(renderer, &rectangle);
+}
+
+void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
+        TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) {
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface *surface = TTF_RenderText_Solid(font, text, textColor);
+    *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    rect->x = x;
+    rect->y = y;
+    rect->w = surface->w;
+    rect->h = surface->h;
+    SDL_FreeSurface(surface);
+}
+
+int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
+    
 
     // Création puis génération — propre et sans self-reference
-    MAP map = create_map(MAP_W, MAP_H);
-    generate_map(map);
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());
@@ -53,7 +50,7 @@ int main(int argc, char* argv[])
 
     char font_path[256];
     if (argc == 1)
-        strcpy(font_path, "src/FreeSans.ttf");
+        strcpy(font_path, "FreeSans.ttf");
     else if (argc == 2)
         strcpy(font_path, argv[1]);
     else {
@@ -62,6 +59,7 @@ int main(int argc, char* argv[])
     }
 
     TTF_Font *font = TTF_OpenFont(font_path, 24);
+
     if (!font) {
         fprintf(stderr, "error: font not found: %s\n", TTF_GetError());
         TTF_Quit(); SDL_Quit();
@@ -192,28 +190,4 @@ int main(int argc, char* argv[])
     SDL_DestroyWindow(pWindow);
     SDL_Quit();
     return EXIT_SUCCESS;
-}
-
-void draw_case_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color)
-{
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderFillRect(renderer, &rectangle);
-}
-
-void draw_rectangle_not_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color)
-{
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawRect(renderer, &rectangle);
-}
-
-void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
-        TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) {
-    SDL_Color textColor = { 255, 255, 255, 255 };
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text, textColor);
-    *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    rect->x = x;
-    rect->y = y;
-    rect->w = surface->w;
-    rect->h = surface->h;
-    SDL_FreeSurface(surface);
 }
