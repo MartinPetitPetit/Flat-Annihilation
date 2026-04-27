@@ -1,4 +1,4 @@
-#include "start_menu.hpp"
+#include "startmenu.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <cstdlib>
@@ -6,14 +6,8 @@
 #include <cstdio>
 #include "../display/display.hpp"
 
-template<typename T> constexpr T WIDTHSCREEN{ 800 };
-template<typename T> constexpr T HEIGHTSCREEN{ 600 };
-
-int Display_start_menu(int argc, char* argv[]){
-    
-
-    // Création puis génération — propre et sans self-reference
-
+int Display_start_menu(int argc, char* argv[])
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());
         return EXIT_FAILURE;
@@ -36,7 +30,6 @@ int Display_start_menu(int argc, char* argv[]){
     }
 
     TTF_Font *font = TTF_OpenFont(font_path, 24);
-
     if (!font) {
         fprintf(stderr, "error: font not found: %s\n", TTF_GetError());
         TTF_Quit(); SDL_Quit();
@@ -54,12 +47,11 @@ int Display_start_menu(int argc, char* argv[]){
     }
 
     SDL_Event events;
-    bool isOpen        { true  };
-    
+    bool isOpen{ true };
 
-    const char   *tooltip = "Tooltip example";
-    SDL_Texture  *tooltipTexture = nullptr;
-    SDL_Rect      tooltipRect;
+    const char  *tooltip = "Tooltip example";
+    SDL_Texture *tooltipTexture = nullptr;
+    SDL_Rect     tooltipRect;
     get_text_and_rect(pRenderer, 0, 0, tooltip, font, &tooltipTexture, &tooltipRect);
 
     while (isOpen)
@@ -72,25 +64,30 @@ int Display_start_menu(int argc, char* argv[]){
                 isOpen = false;
                 break;
 
-            
-
             case SDL_MOUSEBUTTONDOWN:
                 if (events.button.button == SDL_BUTTON_LEFT) {
-                   }
+                    // TODO: gestion du clic
                 }
-                break;
+                break;  // ← était en dehors du switch, donc ignoré
             }
         }
 
         SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
         SDL_RenderClear(pRenderer);
 
-        
+        // Rendu du texte DANS la loop, AVANT RenderPresent
+        SDL_RenderCopy(pRenderer, tooltipTexture, NULL, &tooltipRect);
+
+        SDL_RenderPresent(pRenderer); // ← manquait complètement
+    }
+
+    // Libération APRÈS la loop
     SDL_DestroyTexture(tooltipTexture);
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyRenderer(pRenderer);
     SDL_DestroyWindow(pWindow);
     SDL_Quit();
+
     return EXIT_SUCCESS;
 }

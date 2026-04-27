@@ -5,8 +5,6 @@
 #include <cstring>
 #include <cstdio>
 
-template<typename T> constexpr T WIDTHSCREEN{ 800 };
-template<typename T> constexpr T HEIGHTSCREEN{ 600 };
 
 void draw_case_fill(SDL_Renderer* renderer, const SDL_Rect& rectangle, const SDL_Color& color)
 {
