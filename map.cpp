@@ -39,82 +39,63 @@ void affiche_map(const MAP& map)
     int width = static_cast<int>(map.size());
     int height = static_cast<int>(map[0].size());
 
-    for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
         std::cout << "|";
-        for (int x = 0; x < width; x++) {
-            std::cout << " " << map[x][y].type_terrain << " |";
+
+        for (int y = 0; y < height; y++) {
+            if (map[x][y].type_terrain == Plain) {
+                std::cout << "🟩";
+            } else {
+                std::cout << "🟫";
+            }
         }
+
         std::cout << '\n';
     }
 }
 
-int rac_TERRAIN_size_rec(
-    const MAP& map,
-    int x,
-    int y,
-    TERRAIN type_,
-    std::vector<std::vector<int>>& visited
-)
+void paint_mountain_brush(MAP& map, int cx, int cy, int thickness)
 {
-    if (!in_map(map, x, y)) {
-        return 0;
+    int radius = thickness / 2;
+
+    for (int dx = -radius; dx <= radius; dx++) {
+        for (int dy = -radius; dy <= radius; dy++) {
+
+            int dist2 = dx * dx + dy * dy;
+            int r2 = radius * radius;
+
+            if (dist2 > r2) {
+                continue;
+            }
+
+            if (dx == 0 && dy == 0) {
+                set_terrain(map, cx, cy, Montain);
+            }
+            else if (dist2 <= 1 && std::rand() % 100 < 85) {
+                set_terrain(map, cx + dx, cy + dy, Montain);
+            }
+            else if (dist2 < r2 && std::rand() % 100 < 65) {
+                set_terrain(map, cx + dx, cy + dy, Montain);
+            }
+            else if (dist2 == r2 && std::rand() % 100 < 35) {
+                set_terrain(map, cx + dx, cy + dy, Montain);
+            }
+        }
     }
-
-    if (visited[x][y] == 1) {
-        return 0;
-    }
-
-    if (map[x][y].type_terrain != type_) {
-        return 0;
-    }
-
-    visited[x][y] = 1;
-
-    int total = 1;
-
-    total += rac_TERRAIN_size_rec(map, x + 1, y,     type_, visited);
-    total += rac_TERRAIN_size_rec(map, x - 1, y,     type_, visited);
-    total += rac_TERRAIN_size_rec(map, x,     y + 1, type_, visited);
-    total += rac_TERRAIN_size_rec(map, x,     y - 1, type_, visited);
-
-    total += rac_TERRAIN_size_rec(map, x + 1, y + 1, type_, visited);
-    total += rac_TERRAIN_size_rec(map, x + 1, y - 1, type_, visited);
-    total += rac_TERRAIN_size_rec(map, x - 1, y + 1, type_, visited);
-    total += rac_TERRAIN_size_rec(map, x - 1, y - 1, type_, visited);
-
-    return total;
 }
 
-void paint_mountain_thickness(MAP& map, int x, int y, int dir, int thickness)
+void create_montain(MAP& map, std::vector<MONTAIN>& montains)
 {
-    if (thickness < 1) {
-        thickness = 1;
-    }
-
     /*
-        Direções compatíveis com o DisplayMap:
+        No seu sistema original:
 
-        x aumenta para a direita na tela
-        y aumenta para baixo na tela
-
-        NORTH      = y--
-        SOUTH      = y++
-        EAST       = x++
-        WEST       = x--
+        x-- = norte
+        x++ = sul
+        y++ = leste
+        y-- = oeste
     */
 
-    int dx[8] = {
-         0, // NORTH
-         1, // NORTH_EAST
-         1, // EAST
-         1, // SOUTH_EAST
-         0, // SOUTH
-        -1, // SOUTH_WEST
-        -1, // WEST
-        -1  // NORTH_WEST
-    };
-
-    int dy[8] = {
+    const int dx[8] = {
         -1, // NORTH
         -1, // NORTH_EAST
          0, // EAST
@@ -125,28 +106,7 @@ void paint_mountain_thickness(MAP& map, int x, int y, int dir, int thickness)
         -1  // NORTH_WEST
     };
 
-    /*
-        Vetor perpendicular à direção da montanha.
-        A espessura cresce perpendicularmente ao caminho.
-    */
-    int px = -dy[dir];
-    int py = dx[dir];
-
-    int start = -(thickness / 2);
-
-    for (int t = 0; t < thickness; t++) {
-        int offset = start + t;
-
-        int tx = x + offset * px;
-        int ty = y + offset * py;
-
-        set_terrain(map, tx, ty, Montain);
-    }
-}
-
-void create_montains(MAP& map, std::vector<MONTAIN>& montains)
-{
-    int dx[8] = {
+    const int dy[8] = {
          0, // NORTH
          1, // NORTH_EAST
          1, // EAST
@@ -154,40 +114,28 @@ void create_montains(MAP& map, std::vector<MONTAIN>& montains)
          0, // SOUTH
         -1, // SOUTH_WEST
         -1, // WEST
-        -1  // NORTH_WEST
-    };
-
-    int dy[8] = {
-        -1, // NORTH
-        -1, // NORTH_EAST
-         0, // EAST
-         1, // SOUTH_EAST
-         1, // SOUTH
-         1, // SOUTH_WEST
-         0, // WEST
         -1  // NORTH_WEST
     };
 
     for (int i = 0; i < static_cast<int>(montains.size()); i++) {
+
         int x = montains[i].x_init;
         int y = montains[i].y_init;
-
-        int current_size = 0;
+        int steps = 0;
 
         set_terrain(map, x, y, Montain);
 
-        while (in_map(map, x, y) &&
-               current_size < max_size &&
-               (std::rand() % 100) >= montains[i].stop_chance) {
+        while ((std::rand() % 100) >= montains[i].stop_chance &&
+               steps < max_size &&
+               in_map(map, x, y)) {
 
+            /*
+                Mudança de direção principal.
+            */
             if ((std::rand() % 100) < montains[i].turne_chance) {
-                int turn_direction = std::rand() % 2;
+                int turn = (std::rand() % 2) ? 1 : -1;
 
-                if (turn_direction == 0) {
-                    montains[i].DIR--;
-                } else {
-                    montains[i].DIR++;
-                }
+                montains[i].DIR += turn;
 
                 if (montains[i].DIR > 7) {
                     montains[i].DIR = 0;
@@ -198,30 +146,47 @@ void create_montains(MAP& map, std::vector<MONTAIN>& montains)
                 }
             }
 
-            for (int step = 0; step < montains[i].size; step++) {
-                x += dx[montains[i].DIR];
-                y += dy[montains[i].DIR];
+            for (int step = 0;
+                 step < montains[i].size && steps < max_size;
+                 step++) {
+
+                int dir = montains[i].DIR;
+
+                /*
+                    Ruído lateral.
+
+                    px, py é a direção perpendicular ao movimento principal.
+                    Isso substitui todos aqueles casos manuais por direção.
+                */
+                if ((std::rand() % 100) < montains[i].lateral_noise_chance) {
+                    int side = (std::rand() % 2) ? 1 : -1;
+
+                    int px = -dy[dir];
+                    int py =  dx[dir];
+
+                    x += side * px;
+                    y += side * py;
+                }
+
+                /*
+                    Movimento principal.
+                */
+                x += dx[dir];
+                y += dy[dir];
 
                 if (!in_map(map, x, y)) {
                     break;
                 }
 
-                paint_mountain_thickness(
-                    map,
-                    x,
-                    y,
-                    montains[i].DIR,
-                    montains[i].thickness
-                );
+                paint_mountain_brush(map, x, y, montains[i].thickness);
 
-                current_size++;
+                steps++;
             }
 
-            montains[i].stop_chance++;
-
-            if (montains[i].stop_chance > 100) {
-                montains[i].stop_chance = 100;
-            }
+            /*
+                A chance de parar aumenta aos poucos.
+            */
+            montains[i].stop_chance += 0.25f;
         }
     }
 }
@@ -242,6 +207,9 @@ void generate_map(MAP& map)
     int width = static_cast<int>(map.size());
     int height = static_cast<int>(map[0].size());
 
+    /*
+        Parte 1: tudo começa como planície.
+    */
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             map[x][y].type_terrain = Plain;
@@ -250,17 +218,31 @@ void generate_map(MAP& map)
         }
     }
 
+    /*
+        Parte 2: criação dos parâmetros das montanhas.
+    */
     std::vector<MONTAIN> montains(Max_montain_quantity);
 
     for (int i = 0; i < Max_montain_quantity; i++) {
         montains[i].x_init = std::rand() % width;
         montains[i].y_init = std::rand() % height;
+
         montains[i].size = 1 + std::rand() % Max_montain_size;
+
         montains[i].DIR = std::rand() % 8;
-        montains[i].thickness = 1 + std::rand() % thickness_max;
+
+        /*
+            Espessura ímpar: 3, 5 ou 7.
+            Melhor para brush, porque tem centro claro.
+        */
+        montains[i].thickness = 3 + 2 * (std::rand() % thickness_max);
+
         montains[i].turne_chance = std::rand() % turne_chance_max;
+
         montains[i].stop_chance = 1 + std::rand() % stop_chance_max;
+
+        montains[i].lateral_noise_chance = 25 + std::rand() % 30;
     }
 
-    create_montains(map, montains);
+    create_montain(map, montains);
 }
