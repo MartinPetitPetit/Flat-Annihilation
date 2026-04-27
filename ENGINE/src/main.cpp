@@ -5,18 +5,15 @@
 #include <cstdio>
 #include "map/map.hpp"
 #include "display/display.hpp"
-
-
-
-
-
+#include "start_menu/start_menu.hpp"
 
 int main(int argc, char* argv[])
 {
     const int MAP_W = 3000;
     const int MAP_H = 3000;
+    //Display_start_menu(argc, argv);
     MAP map = create_map(MAP_W, MAP_H);
     generate_map(map);
-    return DisplayMap(map, argc, argv, MAP_W, MAP_H);
+    DisplayMap(map, argc, argv, MAP_W, MAP_H);
 }
 
