@@ -158,13 +158,24 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
                 if (cell.y + cell.h < 0 || cell.y > HEIGHTSCREEN<int>) continue;
 
                 switch (map[x][y].type_terrain) {
-                    case Plain:   color = {   0, 255,   0, 255 }; break; // vert
-                    case Montain: color = { 139,  69,  19, 255 }; break; // marron
-                    case Lake:    color = {   0,   0, 255, 255 }; break; // bleu
-                    case Bush:    color = {   0, 180,   0, 255 }; break; // vert foncé
-                    case ravine:  color = { 100, 100, 100, 255 }; break; // gris
+                    case Plain:     color = { 0, 255, 0, 255 };     break;  // green
+                    case Montain:   color = { 139, 69, 19, 255 };   break;  // brown
+                    case Lake:      color = { 0, 0, 180, 255 };     break;  // dark blue
+                    case River:     color = { 0, 120, 255, 255 };   break;  // light blue
+                    case Bush:      color = { 0, 180, 0, 255 };     break;  // dark green
+                    case ravine:    color = { 100, 100, 100, 255 }; break;  // gray
+                    default:        color = { 255, 255, 255, 255 }; break;  // white, debug color
                 }
                 draw_case_fill(pRenderer, cell, color);
+                if (map[x][y].type_resource == tree) {
+                    SDL_Rect treeRect;
+                    treeRect.x = cell.x + cell.w / 4;
+                    treeRect.y = cell.y + cell.h / 4;
+                    treeRect.w = cell.w / 2;
+                    treeRect.h = cell.h / 2;
+
+                    draw_case_fill(pRenderer, treeRect, { 0, 80, 0, 255 });
+                }
             }
         }
 
