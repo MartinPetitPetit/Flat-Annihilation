@@ -1,6 +1,6 @@
 cc = g++
 flags = -Wall
-dependencies = -I./display -I./map -I./startmenu -lSDL2 -lSDL2_ttf
+dependencies = -I./display -I./map -I./startmenu -lSDL2 -lSDL2_ttf -lSDL2_image
 exe = flat_annihilation
 
 # Fichiers sources et headers

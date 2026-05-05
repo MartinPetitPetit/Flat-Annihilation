@@ -1,4 +1,5 @@
 #include "display.hpp"
+#include "../startmenu/startmenu.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <cstdlib>
@@ -30,7 +31,7 @@ void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
     SDL_FreeSurface(surface);
 }
 
-int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
+int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H,DISPLAY_OPTIONS& options) {
     
 
     // Création puis génération — propre et sans self-reference
@@ -48,7 +49,7 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
 
     char font_path[256];
     if (argc == 1)
-        strcpy(font_path, "FreeSans.ttf");
+        strcpy(font_path, "Starjedi.ttf");
     else if (argc == 2)
         strcpy(font_path, argv[1]);
     else {
@@ -56,7 +57,7 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
         return EXIT_FAILURE;
     }
 
-    TTF_Font *font = TTF_OpenFont(font_path, 24);
+    TTF_Font *font = TTF_OpenFont(font_path, 18);
 
     if (!font) {
         fprintf(stderr, "error: font not found: %s\n", TTF_GetError());
@@ -67,7 +68,7 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
     SDL_Window*   pWindow  { nullptr };
     SDL_Renderer* pRenderer{ nullptr };
 
-    if (SDL_CreateWindowAndRenderer(WIDTHSCREEN<int>, HEIGHTSCREEN<int>,
+    if (SDL_CreateWindowAndRenderer(options.width, options.height,
         SDL_WINDOW_SHOWN, &pWindow, &pRenderer) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());
         TTF_CloseFont(font); TTF_Quit(); SDL_Quit();
@@ -84,7 +85,7 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
     int dragStartOffsetX = 0, dragStartOffsetY = 0;
     int selectedCellX  = -1, selectedCellY  = -1;
 
-    const char   *tooltip = "Tooltip example";
+    const char   *tooltip = "il y a bien longtemps, dans une galaxie lointaine, tres lointaine...";
     SDL_Texture  *tooltipTexture = nullptr;
     SDL_Rect      tooltipRect;
     get_text_and_rect(pRenderer, 0, 0, tooltip, font, &tooltipTexture, &tooltipRect);
@@ -154,8 +155,8 @@ int DisplayMap(MAP& map, int argc, char* argv[],int MAP_W, int MAP_H) {
                 cell.w = scale;
                 cell.h = scale;
 
-                if (cell.x + cell.w < 0 || cell.x > WIDTHSCREEN<int>) continue;
-                if (cell.y + cell.h < 0 || cell.y > HEIGHTSCREEN<int>) continue;
+                if (cell.x + cell.w < 0 || cell.x > options.width) continue;
+                if (cell.y + cell.h < 0 || cell.y > options.height) continue;
 
                 switch (map[x][y].type_terrain) {
                     case Plain:   color = {   0, 255,   0, 255 }; break; // vert
