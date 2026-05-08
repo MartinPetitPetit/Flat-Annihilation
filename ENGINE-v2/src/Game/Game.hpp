@@ -24,6 +24,7 @@ class EventManager{};
 class ResourceManager{};
 class UIManager{};
 class Map{public:Map(int maxX, int maxY){};};
+class StatsRegistry{};
 
 
 // ── Game ─────────────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ class Game
 	public:
 
 		Game();
+
 		virtual ~Game();
 
 		void startGame();
@@ -48,6 +50,7 @@ class Game
 		std::unique_ptr<UIManager> ptr_uiManager;
 		std::unique_ptr<Map> ptr_map;
 		std::vector<std::unique_ptr<Player>> ptr_players;
+		std::unique_ptr<StatsRegistry> statsblock;
 		bool running = false;
 
 
