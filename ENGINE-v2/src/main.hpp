@@ -1,7 +1,2 @@
-
-#include <iostream>
-#include <new>
-
+#pragma once
 #include "Game/Game.hpp"
-#include "Player/Player.hpp"
-#include "Unit/Unit.hpp"

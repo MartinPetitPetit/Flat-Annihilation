@@ -25,10 +25,10 @@ Player::Player()
 
 Player::Player(int i)
 {
-	char *buffer = new char;
+/* 	char *buffer = new char;
 	sprintf(buffer, "IA%i", i);
 	this->name = buffer;
-	delete buffer;
+	delete buffer; */
 }
 
 
