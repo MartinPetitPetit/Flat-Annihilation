@@ -10,10 +10,10 @@
  */
 
 // Number of rows in the map.
-constexpr int X_Max = 50;
+constexpr int X_Max = 0;
 
 // Number of columns in the map.
-constexpr int Y_Max = 50;
+constexpr int Y_Max = 0;
 
 
 /*
