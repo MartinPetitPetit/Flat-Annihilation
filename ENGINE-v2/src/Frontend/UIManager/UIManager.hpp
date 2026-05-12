@@ -2,6 +2,7 @@
 #include "../Renderer/Renderer.hpp"
 #include "../SelectionManager/SelectionManager.hpp"
 #include "../../Backend/Map/Map.hpp"
+#include "../Sound/Sound.hpp"
 
 class UIManager {
     Renderer*         renderer { nullptr };
@@ -14,7 +15,7 @@ public:
     void renderDragRect(SelectionManager& sel);
 
     // Menu principal
-    int  showMainMenu(DISPLAY_OPTIONS& options);
+    int  showMainMenu(DISPLAY_OPTIONS& options,Sound& sound);
     void showOptionsMenu(DISPLAY_OPTIONS& options);
 
 private:
