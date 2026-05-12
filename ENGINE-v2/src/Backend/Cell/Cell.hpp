@@ -3,11 +3,11 @@
 #include <SDL2/SDL_image.h>
 
 enum cellType {
-    Plain,      // Basic walkable terrain.
-    Montain,   // Mountain terrain.
-    Lake,      // Lake water.
-    River,     // River water.
-    ravine     // Cracked or torn terrain.
+    // Plain,      // Basic walkable terrain.
+    // Montain,   // Mountain terrain.
+    // Lake,      // Lake water.
+    // River,     // River water.
+    // ravine     // Cracked or torn terrain.
 };
 
 

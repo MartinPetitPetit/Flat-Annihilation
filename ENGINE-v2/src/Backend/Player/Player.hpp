@@ -1,7 +1,11 @@
-#ifndef PLAYER_HPP
-#define PLAYER_HPP
+#pragma  once
 
 
+
+#include <vector>
+
+
+#include "../Entity/Entity.hpp"
 
 class Player
 {
@@ -23,9 +27,7 @@ class Player
 
 		int id;
 		const char *name;
+		std::vector<Entity*> entities;
 
 
 };
-
-
-#endif
