@@ -15,15 +15,15 @@ class Player
 
 	private:
 
-		int id;
-		const char *name;
-		int gold;
-		int food;
-		int foodCap;
+
 
 
 
 	protected:
+
+		int id;
+		const char *name;
+
 
 };
 
