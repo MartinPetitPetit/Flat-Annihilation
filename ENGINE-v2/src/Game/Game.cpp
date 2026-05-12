@@ -11,10 +11,7 @@ Game::Game()
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer);
     ptr_selectionManager = std::make_unique<SelectionManager>();
-    ptr_eventManager = std::make_unique<EventManager>(
-        *ptr_selectionManager,
-        *ptr_renderer
-    );
+    ptr_eventManager = std::make_unique<EventManager>(*ptr_selectionManager, *ptr_renderer);
 }
 
 Game::~Game()
