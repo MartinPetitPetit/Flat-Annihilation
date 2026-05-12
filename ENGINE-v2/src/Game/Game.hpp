@@ -18,6 +18,7 @@ static constexpr float TICK_DELAY   { 1000.0f / TICK_RATE }; // ms par tick
 static constexpr int   FPS_CAP      { 120 }; // 0 = illimité
 static constexpr float FRAME_DELAY  { 1000.0f / FPS_CAP };
 
+
 class Game
 {
 public:
@@ -43,6 +44,7 @@ private:
     int  MAP_W   { 0     };
     int  MAP_H   { 0     };
     bool running { false };
+    Uint64 currentTick { 0 }; // horloge interne du jeu
 };
 
 #endif

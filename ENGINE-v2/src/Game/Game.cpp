@@ -112,15 +112,21 @@ void Game::run()
         // -- Affichage des stats toutes les secondes
         Uint32 statsNow = SDL_GetTicks();
         if (statsNow - lastStatsTime >= 1000)
-        {
-            std::cout << "FPS: " << frameCount
-                      << " | TPS: " << tickCount
-                      << " | cible: " << TICK_RATE << " ticks/s"
-                      << "\r" << std::flush; // \r écrase la ligne précédente
-            frameCount    = 0;
-            tickCount     = 0;
-            lastStatsTime = statsNow;
-        }
+			{
+				float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
+				int   minutes         = static_cast<int>(gameTimeSeconds) / 60;
+				int   seconds         = static_cast<int>(gameTimeSeconds) % 60;
+
+				std::cout << "FPS: "   << frameCount
+						<< " | TPS: " << tickCount
+						<< " | tick: " << currentTick
+						<< " | temps: " << minutes << "m" << seconds << "s"
+						<< "\r" << std::flush;
+
+				frameCount    = 0;
+				tickCount     = 0;
+				lastStatsTime = statsNow;
+			}
     }
 
     std::cout << "\n"; // saut de ligne propre à la fin
@@ -128,5 +134,23 @@ void Game::run()
 
 void Game::update()
 {
-    // TODO : logique de jeu (tours, IA, etc.)
+    currentTick++;
+
+    // -- Chaque tick : déplacements, collisions, etc.
+    // ptr_map->update(currentTick);  // TODO
+
+    // -- Toutes les secondes de jeu (TICK_RATE ticks)
+    if (currentTick % TICK_RATE == 0)
+    {
+        // production de ressources, etc.
+    }
+
+    // -- Toutes les 5 secondes
+    if (currentTick % (TICK_RATE * 5) == 0)
+    {
+        // événements rares
+    }
+
+    // -- Convertir en secondes de jeu si besoin
+    // float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
 }
