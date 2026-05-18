@@ -1,5 +1,4 @@
-#ifndef UNIT_HPP
-#define UNIT_HPP
+#pragma once
 
 
 
@@ -9,6 +8,3 @@
 
 
 
-
-
-#endif
