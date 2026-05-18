@@ -1,5 +1,4 @@
-#ifndef GAME_HPP
-#define GAME_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -12,10 +11,11 @@
 #include "../Frontend/UIManager/UIManager.hpp"
 #include "../Backend/Map/Map.hpp"
 #include "../Backend/Player/Player.hpp"
+#include "../Frontend/Sound/Sound.hpp"
 
-static constexpr int   TICK_RATE    { 20   }; // ticks logique par seconde
+static constexpr int   TICK_RATE    { 10   }; // ticks logique par seconde
 static constexpr float TICK_DELAY   { 1000.0f / TICK_RATE }; // ms par tick
-static constexpr int   FPS_CAP      { 120 }; // 0 = illimité
+static constexpr int   FPS_CAP      { 160 }; // 0 = illimité
 static constexpr float FRAME_DELAY  { 1000.0f / FPS_CAP };
 
 
@@ -40,11 +40,12 @@ class Game
         std::unique_ptr<UIManager>        ptr_uiManager;
         std::unique_ptr<MAP>              ptr_map;
         std::vector<std::unique_ptr<Player>> ptr_players;
+        
+
+std::unique_ptr<Sound> ptr_sound;
 
     int  MAP_W   { 0     };
     int  MAP_H   { 0     };
     bool running { false };
     Uint64 currentTick { 0 }; // horloge interne du jeu
 };
-
-#endif

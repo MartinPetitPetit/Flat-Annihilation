@@ -8,7 +8,7 @@ deps  = -I./Frontend/Window \
         -I./Backend/Map \
         -I./Backend/Player \
         -I./Game \
-        -lSDL2 -lSDL2_ttf -lSDL2_image
+        -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer \
 
 srcs  = main.cpp \
         Game/Game.cpp \
@@ -18,7 +18,8 @@ srcs  = main.cpp \
         Frontend/SelectionManager/SelectionManager.cpp \
         Frontend/UIManager/UIManager.cpp \
         Backend/Map/Map.cpp \
-        Backend/Player/Player.cpp
+        Backend/Player/Player.cpp \
+        Frontend/Sound/Sound.cpp \
 
 hdrs  = Game/Game.hpp \
         Frontend/Window/Window.hpp \
@@ -27,7 +28,8 @@ hdrs  = Game/Game.hpp \
         Frontend/SelectionManager/SelectionManager.hpp \
         Frontend/UIManager/UIManager.hpp \
         Backend/Map/Map.hpp \
-        Backend/Player/Player.hpp
+        Backend/Player/Player.hpp \
+        Frontend/Sound/Sound.hpp \
 
 exe   = flat_annihilation
 

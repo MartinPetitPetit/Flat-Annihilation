@@ -7,6 +7,10 @@ Game::Game()
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
 
+	ptr_sound = std::make_unique<Sound>();
+	ptr_sound->load("click",  "sounds/click.wav");
+	ptr_sound->load("hover",  "sounds/hover.wav");	
+
     ptr_window   = std::make_unique<Window>("Flat Annihilation", options);
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer);
@@ -28,7 +32,8 @@ Game::~Game()
 void Game::startGame()
 {
     // Menu principal
-    int choice = ptr_uiManager->showMainMenu(options);
+
+	int choice = ptr_uiManager->showMainMenu(options, *ptr_sound);
     if (choice < 0) return;
 
     // Taille de la carte
