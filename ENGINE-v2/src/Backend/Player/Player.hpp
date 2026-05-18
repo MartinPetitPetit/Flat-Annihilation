@@ -1,33 +1,22 @@
-#pragma  once
+#pragma once
 
-
-
+#include <string>
 #include <vector>
 
-
-#include "../Entity/Entity.hpp"
+class Entity;
 
 class Player
 {
-	public:
+public:
+	Player();
+	Player(int i);
+	virtual ~Player();
 
-		Player();
-		Player(int i);
-		virtual ~Player();
+	const std::string& getName() const;
 
-		const char *getName() const;
+private:
+	int id { 0 };
+	std::string name;
 
-	private:
-
-
-
-
-
-	protected:
-
-		int id;
-		const char *name;
-		std::vector<Entity*> entities;
-
-
+	std::vector<Entity*> entities;
 };

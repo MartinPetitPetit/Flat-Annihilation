@@ -1,28 +1,27 @@
-#ifndef RESOURCE_HPP
-#define RESOURCE_HPP
+#pragma once
 
-enum ResourceType {food, wood, stone, gold};
-
-
-
-class Resource
-{
-
-    public:
-        Resource();
-        virtual ~Resource();
-
-
-    private:
-        ResourceType type;
-        int amount;
-        int maxAmount;
-        
-    protected:
+enum class ResourceType {
+    Food,
+    Wood,
+    Stone,
+    Gold,
+    Iron
 };
 
+class ResourceStack
+{
+public:
+    ResourceStack(ResourceType type, int amount, int maxAmount);
 
+    ResourceType getType() const;
+    int getAmount() const;
+    int getMaxAmount() const;
 
+    void add(int value);
+    int remove(int value);
 
-
-#endif
+private:
+    ResourceType type;
+    int amount;
+    int maxAmount;
+};

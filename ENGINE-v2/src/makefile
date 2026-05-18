@@ -7,6 +7,8 @@ deps  = -I./Frontend/Window \
         -I./Frontend/UIManager \
         -I./Backend/Map \
         -I./Backend/Player \
+        -I./Backend/Cell \
+        -I./Backend/Unit \
         -I./Game \
         -lSDL2 -lSDL2_ttf -lSDL2_image
 
@@ -18,7 +20,17 @@ srcs  = main.cpp \
         Frontend/SelectionManager/SelectionManager.cpp \
         Frontend/UIManager/UIManager.cpp \
         Backend/Map/Map.cpp \
-        Backend/Player/Player.cpp
+        Backend/Map/Mountain.cpp \
+        Backend/Map/River.cpp \
+        Backend/Map/Ravine.cpp \
+        Backend/Map/Forest.cpp \
+        Backend/Map/Bush.cpp \
+        Backend/Cell/Cell.cpp \
+        Backend/Player/Player.cpp \
+        Backend/Unit/Collector.cpp \
+        Backend/Unit/Unit.cpp \
+        Backend/Unit/UnitManager.cpp \
+        Backend/Structure/Base.cpp
 
 hdrs  = Game/Game.hpp \
         Frontend/Window/Window.hpp \
@@ -27,7 +39,8 @@ hdrs  = Game/Game.hpp \
         Frontend/SelectionManager/SelectionManager.hpp \
         Frontend/UIManager/UIManager.hpp \
         Backend/Map/Map.hpp \
-        Backend/Player/Player.hpp
+        Backend/Player/Player.hpp \
+        Backend/Cell/Cell.hpp
 
 exe   = flat_annihilation
 
