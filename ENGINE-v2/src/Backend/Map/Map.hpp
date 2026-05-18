@@ -5,240 +5,241 @@
 
 #include "../Cell/Cell.hpp"
 
-/*
- * ============================================================
- * MAP TYPE
- * ============================================================
- */
 
-// Main procedural map type.
-using MAP = std::vector<std::vector<Cell>>;
 
-/*
- * ============================================================
- * OPTIONAL OOP WRAPPER
- * ============================================================
- */
 
-// Optional object-oriented wrapper.
-// The procedural generator still works directly with MAP.
+
+
 class Map
 {
-public:
-    Map(int map_width, int map_height)
-    : grid(map_width, std::vector<Cell>(map_height)),
-    width(map_width),
-    height(map_height)
-    {
-    }
+    public:
+        Map(int width, int height);
+        virtual ~Map();
 
-    virtual ~Map() = default;
+    private:
+        std::vector<std::vector<Cell>> grid;
+        int width;
+        int height;
 
-    MAP& data()
-    {
-        return grid;
-    }
+    protected:
 
-    const MAP& data() const
-    {
-        return grid;
-    }
-
-    int get_width() const
-    {
-        return width;
-    }
-
-    int get_height() const
-    {
-        return height;
-    }
-
-private:
-    MAP grid;
-    int width;
-    int height;
 };
 
-/*
- * ============================================================
- * DEFAULT MAP SIZE
- * ============================================================
- */
 
-// Default number of rows.
-constexpr int X_Max = 300;
 
-// Default number of columns.
-constexpr int Y_Max = 300;
+
 
 /*
- * ============================================================
- * BASE GENERATION VALUES
- * ============================================================
- *
- * These values are used as a reference by make_generation_config().
- * The real generation values are dynamically calculated from map size.
+ = =================================*==========================
+ MAP DIMENSIONS
+ ============================================================
  */
 
-// Base reference map size.
-constexpr int BASE_MAP_WIDTH = 300;
-constexpr int BASE_MAP_HEIGHT = 300;
+// Number of rows in the map.
+constexpr int X_Max = 0;
 
-// Mountains.
-// Fewer chains, but longer and wider.
-constexpr int BASE_Max_montain_quantity = 9;
-constexpr int BASE_Max_montain_size = 1;
-constexpr int BASE_thickness_max = 5;
-constexpr int BASE_turne_chance_max = 18;
-constexpr int BASE_stop_chance_max = 3;
-constexpr int BASE_min_montain_steps = 45;
-constexpr int BASE_max_montain_steps = 160;
-constexpr float BASE_montain_stop_growth = 0.10f;
+// Number of columns in the map.
+constexpr int Y_Max = 0;
 
-// Rivers and lakes.
-constexpr int BASE_source_search_attempts = 500;
-constexpr int BASE_Max_river_quantity = 20;
-constexpr int BASE_Max_river_size = 120;
-constexpr int BASE_lake_min_area = 15;
-constexpr int BASE_lake_max_area = 350;
-constexpr int BASE_river_min_thickness = 1;
-constexpr int BASE_river_max_thickness = 3;
-constexpr int BASE_river_turn_chance = 25;
-
-// Ravines.
-constexpr int BASE_Max_ravine_quantity = 8;
-constexpr int BASE_Max_ravine_size = 45;
-constexpr int BASE_ravine_turn_chance = 12;
-constexpr int BASE_ravine_hard_turn_chance = 8;
-constexpr int BASE_ravine_stop_chance = 2;
-constexpr int BASE_ravine_branch_chance = 12;
-constexpr int BASE_ravine_source_attempts = 1000;
-
-// Forests.
-constexpr int BASE_Max_forest_quantity = 12;
-constexpr int BASE_forest_min_radius = 4;
-constexpr int BASE_forest_max_radius = 12;
-constexpr int BASE_forest_center_search_attempts = 1000;
-constexpr int BASE_forest_core_chance = 85;
-constexpr int BASE_forest_edge_chance = 20;
-constexpr int BASE_scattered_tree_chance = 2;
-constexpr int BASE_near_water_tree_bonus = 6;
-constexpr int BASE_near_forest_tree_bonus = 3;
-constexpr int BASE_near_ravine_tree_penalty = 4;
-
-// Wood type.
-constexpr int BASE_wood_type_b_chance = 35;
-constexpr int BASE_wood_type_c_chance = 15;
-
-// Bushes and berries.
-constexpr int BASE_Max_bush_patch_quantity = 10;
-constexpr int BASE_bush_min_radius = 3;
-constexpr int BASE_bush_max_radius = 7;
-constexpr int BASE_bush_center_search_attempts = 1000;
-constexpr int BASE_bush_core_chance = 80;
-constexpr int BASE_bush_edge_chance = 20;
-constexpr int BASE_scattered_bush_chance = 1;
-constexpr int BASE_dense_bush_berry_chance = 45;
-constexpr int BASE_scattered_bush_berry_chance = 25;
-constexpr int BASE_near_water_bush_bonus = 4;
-constexpr int BASE_near_ravine_bush_penalty = 3;
 
 /*
- * ============================================================
- * DYNAMIC GENERATION CONFIG
- * ============================================================
+ = =================================*==========================
+ MOUNTAIN GENERATION CONSTANTS
+ ============================================================
  */
 
-// Runtime generation values calculated from the map size.
-struct GenerationConfig {
-    int map_width;
-    int map_height;
+// Number of mountain chains that the generator will try to create.
+constexpr int Max_montain_quantity = 60;
 
-    double area_ratio;
-    double linear_ratio;
+// Number of cells advanced at each mountain generation step.
+// Currently 1 means the chain grows cell by cell.
+constexpr int Max_montain_size = 1;
 
-    // Mountains.
-    int max_montain_quantity;
-    int max_montain_size;
-    int thickness_max;
-    int turne_chance_max;
-    int stop_chance_max;
-    int min_montain_steps;
-    int max_montain_steps;
-    float montain_stop_growth;
+// Maximum random value used to define mountain thickness.
+// Final thickness is usually generated as rand() % thickness_max + 2.
+constexpr int thickness_max = 3;
 
-    // Rivers and lakes.
-    int source_search_attempts;
-    int max_river_quantity;
-    int max_river_size;
-    int lake_min_area;
-    int lake_max_area;
-    int river_min_thickness;
-    int river_max_thickness;
-    int river_turn_chance;
+// Maximum random value used to define the chance of a mountain chain turning.
+constexpr int turne_chance_max = 25;
 
-    // Ravines.
-    int max_ravine_quantity;
-    int max_ravine_size;
-    int ravine_turn_chance;
-    int ravine_hard_turn_chance;
-    int ravine_stop_chance;
-    int ravine_branch_chance;
-    int ravine_source_attempts;
+// Maximum random value used to define the initial chance of a mountain chain stopping.
+constexpr int stop_chance_max = 5;
 
-    // Forests.
-    int max_forest_quantity;
-    int forest_min_radius;
-    int forest_max_radius;
-    int forest_center_search_attempts;
-    int forest_core_chance;
-    int forest_edge_chance;
-    int scattered_tree_chance;
-    int near_water_tree_bonus;
-    int near_forest_tree_bonus;
-    int near_ravine_tree_penalty;
+// Maximum number of steps allowed for a single mountain chain.
+constexpr int max_size = 100;
 
-    // Wood type.
-    int wood_type_b_chance;
-    int wood_type_c_chance;
 
-    // Bushes.
-    int max_bush_patch_quantity;
-    int bush_min_radius;
-    int bush_max_radius;
-    int bush_center_search_attempts;
-    int bush_core_chance;
-    int bush_edge_chance;
-    int scattered_bush_chance;
-    int dense_bush_berry_chance;
-    int scattered_bush_berry_chance;
-    int near_water_bush_bonus;
-    int near_ravine_bush_penalty;
+/*
+ = =================================*==========================
+ RIVER AND LAKE GENERATION CONSTANTS
+ ============================================================
+ */
+
+// Number of attempts to find a mountain cell where a river can start.
+constexpr int source_search_attempts = 500;
+
+// Number of rivers that the generator will try to create.
+constexpr int Max_river_quantity = 20;
+
+// Maximum length of a river before it stops and creates a lake.
+constexpr int Max_river_size = 120;
+
+// Minimum lake area, in number of cells, when a river creates a lake.
+constexpr int lake_min_area = 15;
+
+// Maximum lake area, in number of cells, when a river creates a lake.
+constexpr int lake_max_area = 350;
+
+// Minimum river thickness.
+constexpr int river_min_thickness = 1;
+
+// Maximum river thickness.
+constexpr int river_max_thickness = 3;
+
+// Chance, in percent, that a river changes direction at each step.
+constexpr int river_turn_chance = 25;
+
+
+/*
+ = =================================*==========================
+ RAVINE GENERATION CONSTANTS
+ ============================================================
+ */
+
+// Number of ravines that the generator will try to create.
+constexpr int Max_ravine_quantity = 8;
+
+// Maximum number of steps for one ravine.
+constexpr int Max_ravine_size = 45;
+
+// Chance, in percent, that a ravine slightly changes direction.
+constexpr int ravine_turn_chance = 12;
+
+// Chance, in percent, that a ravine makes a stronger direction change.
+constexpr int ravine_hard_turn_chance = 8;
+
+// Initial chance, in percent, that a ravine stops.
+constexpr int ravine_stop_chance = 2;
+
+// Chance, in percent, that a ravine creates a small lateral branch.
+constexpr int ravine_branch_chance = 12;
+
+// Number of attempts to find a valid ravine starting point.
+constexpr int ravine_source_attempts = 1000;
+
+
+/*
+ = =================================*==========================
+ FOREST AND TREE GENERATION CONSTANTS
+ ============================================================
+ */
+
+// Number of dense forest patches that the generator will try to create.
+constexpr int Max_forest_quantity = 12;
+
+// Minimum radius of a dense forest patch.
+constexpr int forest_min_radius = 4;
+
+// Maximum radius of a dense forest patch.
+constexpr int forest_max_radius = 12;
+
+// Number of attempts to find a valid center for a forest patch.
+constexpr int forest_center_search_attempts = 1000;
+
+// Chance, in percent, of placing trees near the center of a forest.
+constexpr int forest_core_chance = 85;
+
+// Chance, in percent, of placing trees near the edge of a forest.
+constexpr int forest_edge_chance = 20;
+
+// Base chance, in percent, of placing scattered trees on plain terrain.
+constexpr int scattered_tree_chance = 2;
+
+// Bonus chance added when a tree is near water.
+constexpr int near_water_tree_bonus = 6;
+
+// Bonus chance added when a tree is near another tree.
+constexpr int near_forest_tree_bonus = 3;
+
+// Penalty applied when a tree is near a ravine.
+constexpr int near_ravine_tree_penalty = 4;
+
+
+/*
+ = =================================*==========================
+ ENUMERATIONS
+ ============================================================
+ */
+
+// Terrain layer: represents the ground itself.
+enum TERRAIN {
+    Plain,      // Basic walkable terrain.
+    Montain,   // Mountain terrain.
+    Lake,      // Lake water.
+    River,     // River water.
+    Bush,      // Legacy vegetation terrain. Prefer RESOURCE::tree for trees.
+    ravine     // Cracked or torn terrain.
 };
 
+// Structure layer: represents buildings placed on a cell.
+enum STRUCTURE {
+    None_Struct, // No structure.
+    Usine,       // Factory.
+    Production,  // Production building.
+    Resource     // Resource-related structure.
+};
+
+// Resource layer: represents objects or resources placed over the terrain.
+enum RESOURCE {
+    None_Resource, // No resource.
+    tree,          // Tree resource.
+    stone,         // Stone resource.
+    gold,          // Gold resource.
+    iron,          // Iron resource.
+    Sapling        // Young tree.
+};
+
+// Unit layer: represents units placed on the map.
+enum UNIT {
+    None_Unit, // No unit.
+    archer,    // Archer unit.
+    MONK       // Monk unit.
+};
+
+
 /*
- * ============================================================
- * GENERATION STRUCTURES
- * ============================================================
+ = =================================*==========================
+ BASIC DATA STRUCTURES
+ ============================================================
  */
+
+// One map cell.
+// Each cell has multiple layers: terrain, structure, resource and unit.
+struct CARRE {
+    TERRAIN type_terrain;
+    STRUCTURE type_struct;
+    RESOURCE type_resource;
+    UNIT type_unit;
+};
+
+// The map is a 2D vector of cells.
+using MAP = std::vector<std::vector<CARRE>>;
 
 // Mountain generation data.
+// Each mountain chain has a start point, direction, thickness and behavior chances.
 struct MONTAIN {
     int x_init;
     int y_init;
     int size;
     int DIR;
-    int thickness;      // Peak thickness used near the center of the chain.
-    int tip_thickness;  // Thickness used near the tips.
-    int target_steps;   // Intended mountain chain length.
-
+    int thickness;
     int turne_chance;
     float stop_chance;
     int lateral_noise_chance;
 };
 
 // River generation data.
+// Currently useful if you want to store river parameters before drawing them.
 struct RIVER {
     int x_init;
     int y_init;
@@ -247,94 +248,120 @@ struct RIVER {
     int turn_chance;
 };
 
+
 /*
- * ============================================================
- * MAP CREATION AND GENERAL UTILITIES
- * ============================================================
+ = =================================*==========================
+ MAP CREATION AND GENERAL UTILITIES
+ ============================================================
  */
 
-GenerationConfig make_generation_config(int width, int height);
-
+// Creates an empty map with the given width and height.
 MAP create_map(int width, int height);
+
+// Generates the full map by calling each generation step in order.
 void generate_map(MAP& map);
+
+// Prints the map in the terminal using emoji symbols.
 void affiche_map(const MAP& map);
 
+// Checks if a coordinate is inside the map.
 bool in_map(const MAP& map, int x, int y);
+
+// Changes the terrain of a cell if the coordinate is valid.
 void set_terrain(MAP& map, int x, int y, TERRAIN terrain);
 
-bool has_terrain_near(const MAP& map, int cx, int cy, TERRAIN terrain, int radius);
-bool has_resource_near(const MAP& map, int cx, int cy, RESOURCE resource, int radius);
-bool is_near_water(const MAP& map, int x, int y, int radius);
 
 /*
- * ============================================================
- * MOUNTAIN GENERATION
- * ============================================================
+ = =================================*==========================
+ MOUNTAIN GENERATION
+ ============================================================
  */
 
-void create_montain(MAP& map, std::vector<MONTAIN>& montains, const GenerationConfig& cfg);
+// Creates all mountain chains using the given mountain parameters.
+void create_montain(MAP& map, std::vector<MONTAIN>& montains);
+
+// Paints a mountain area around a center cell using a circular/random brush.
 void paint_mountain_brush(MAP& map, int cx, int cy, int thickness);
 
+
 /*
- * ============================================================
- * RIVER AND LAKE GENERATION
- * ============================================================
+ = =================================*==========================
+ RIVER AND LAKE GENERATION
+ ============================================================
  */
 
-bool find_mountain_source(const MAP& map, int& x, int& y, const GenerationConfig& cfg);
-void create_rivers(MAP& map, const GenerationConfig& cfg);
-void draw_river(MAP& map, int x, int y, int dir, const GenerationConfig& cfg);
+// Finds a mountain cell that can be used as the source of a river.
+bool find_mountain_source(const MAP& map, int& x, int& y);
 
-int paint_river_brush(MAP& map, int cx, int cy, int thickness);
+// Creates all rivers on the map.
+void create_rivers(MAP& map);
 
-int calculate_lake_area(int river_volume, int river_thickness, const GenerationConfig& cfg);
+// Draws one river starting from a coordinate and following a direction.
+void draw_river(MAP& map, int x, int y, int dir);
+
+// Paints a river with a given thickness around a center cell.
+void paint_river_brush(MAP& map, int cx, int cy, int thickness);
+
+// Calculates the lake area based on river length and river thickness.
+int calculate_lake_area(int river_length, int river_thickness);
+
+// Checks if a cell can be replaced by lake terrain.
 bool can_paint_lake_cell(const MAP& map, int x, int y);
-void create_lake_from_river(MAP& map, int x, int y, int river_volume, int river_thickness, const GenerationConfig& cfg);
+
+// Creates a lake at the end of a river using river length and thickness.
+void create_lake_from_river(MAP& map, int x, int y, int river_length, int river_thickness);
+
+// Paints a lake by expanding from a center cell until reaching a target area.
 void paint_lake_area(MAP& map, int cx, int cy, int target_area);
 
-// Legacy circular lake function.
-void paint_lake(MAP& map, int cx, int cy, int radius);
-
 /*
- * ============================================================
- * RAVINE GENERATION
- * ============================================================
+ = =================================*==========================
+ RAVINE GENERATION
+ ============================================================
  */
 
-bool find_ravine_source(const MAP& map, int& x, int& y, int& dir, const GenerationConfig& cfg);
-void create_ravines(MAP& map, const GenerationConfig& cfg);
-void draw_ravine(MAP& map, int x, int y, int dir, const GenerationConfig& cfg);
+// Finds a valid starting point for a ravine near mountains.
+bool find_ravine_source(const MAP& map, int& x, int& y, int& dir);
+
+// Creates all ravines on the map.
+void create_ravines(MAP& map);
+
+// Draws one ravine as a torn/cracked line across the terrain.
+void draw_ravine(MAP& map, int x, int y, int dir);
+
+// Paints the main ravine tear around a center cell.
 void paint_ravine_tear_brush(MAP& map, int cx, int cy, int dir, int width);
+
+// Draws a small lateral branch from a ravine.
 void draw_ravine_branch(MAP& map, int x, int y, int dir, int length);
 
+
 /*
- * ============================================================
- * FOREST AND TREE GENERATION
- * ============================================================
+ = =================================*==========================
+ FOREST AND TREE GENERATION
+ ============================================================
  */
 
+// Checks if a tree can be placed on a cell.
 bool can_place_tree(const MAP& map, int x, int y);
 
-WOOD_TYPE choose_wood_type(const GenerationConfig& cfg);
-void place_tree(MAP& map, int x, int y, WOOD_TYPE wood_type);
+// Checks if a specific terrain exists near a coordinate.
+bool has_terrain_near(const MAP& map, int cx, int cy, TERRAIN terrain, int radius);
 
-bool find_forest_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg);
-void paint_forest_patch(MAP& map, int cx, int cy, int radius, WOOD_TYPE wood_type, const GenerationConfig& cfg);
+// Checks if a specific resource exists near a coordinate.
+bool has_resource_near(const MAP& map, int cx, int cy, RESOURCE resource, int radius);
 
-void create_forests(MAP& map, const GenerationConfig& cfg);
-void create_scattered_trees(MAP& map, const GenerationConfig& cfg);
+// Checks if a coordinate is near a river or lake.
+bool is_near_water(const MAP& map, int x, int y, int radius);
 
-/*
- * ============================================================
- * BUSH AND BERRY GENERATION
- * ============================================================
- */
+// Finds a valid center point for a dense forest patch.
+bool find_forest_center(const MAP& map, int& x, int& y);
 
-bool can_place_bush(const MAP& map, int x, int y);
-void place_bush(MAP& map, int x, int y, int berry_chance);
+// Paints one dense forest patch around a center point.
+void paint_forest_patch(MAP& map, int cx, int cy, int radius);
 
-bool find_bush_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg);
-void paint_bush_patch(MAP& map, int cx, int cy, int radius, const GenerationConfig& cfg);
+// Creates dense forest patches.
+void create_forests(MAP& map);
 
-void create_bush_patches(MAP& map, const GenerationConfig& cfg);
-void create_scattered_bushes(MAP& map, const GenerationConfig& cfg);
+// Creates scattered trees outside dense forests.
+void create_scattered_trees(MAP& map);

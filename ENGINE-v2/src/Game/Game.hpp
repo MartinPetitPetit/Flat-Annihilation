@@ -21,17 +21,17 @@ static constexpr float FRAME_DELAY  { 1000.0f / FPS_CAP };
 
 class Game
 {
-public:
-    Game();
-    virtual ~Game();
+    public:
+        Game();
+        virtual ~Game();
 
-    void startGame();
-    void stopGame();
-    void run();
-    void update();
+        void startGame();
+        void stopGame();
+        void run();
+        void update();
 
-private:
-    DISPLAY_OPTIONS options { 800, 600, false };
+    private:
+        DISPLAY_OPTIONS  options { 800, 600, false };
 
         std::unique_ptr<Window>           ptr_window;
         std::unique_ptr<Renderer>         ptr_renderer;
@@ -47,6 +47,5 @@ std::unique_ptr<Sound> ptr_sound;
     int  MAP_W   { 0     };
     int  MAP_H   { 0     };
     bool running { false };
-
     Uint64 currentTick { 0 }; // horloge interne du jeu
 };

@@ -7,8 +7,6 @@ deps  = -I./Frontend/Window \
         -I./Frontend/UIManager \
         -I./Backend/Map \
         -I./Backend/Player \
-        -I./Backend/Cell \
-        -I./Backend/Unit \
         -I./Game \
         -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer \
 
