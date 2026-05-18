@@ -10,6 +10,9 @@ Game::Game()
 	ptr_sound = std::make_unique<Sound>();
 	ptr_sound->load("click",  "sounds/rhoo.wav");
 	ptr_sound->load("hover",  "sounds/ptiou.wav");	
+    ptr_sound->loadMusic("sounds/Flat-construction-v2.wav"); 
+    ptr_sound->playMusic(); // lance en boucle infinie
+    ptr_sound->setMusicVolume(64); // 50% volume
 
     ptr_window   = std::make_unique<Window>("Flat Annihilation", options);
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
