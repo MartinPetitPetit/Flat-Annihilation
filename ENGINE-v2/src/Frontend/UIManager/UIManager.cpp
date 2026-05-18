@@ -80,6 +80,11 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options)
                     if (ev.motion.x >= rects[i].x && ev.motion.x <= rects[i].x+rects[i].w &&
                         ev.motion.y >= rects[i].y && ev.motion.y <= rects[i].y+rects[i].h)
                         sel = i;
+                for (int i = 0; i < N; i++)
+                    if (/* collision */ && sel != i) {
+                        sound.play("hover");  // ← son au survol
+                        sel = i;
+                }
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 if (ev.button.button == SDL_BUTTON_LEFT)
@@ -89,9 +94,13 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options)
                             if (i == 3) showOptionsMenu(options);
                             else { result = i; isOpen = false; }
                         }
+                    if (ev.button.button == SDL_BUTTON_LEFT)
+                        for (int i = 0; i < N; i++)
+                if (/* collision */) {
+                    sound.play("click");  // ← jouer le son
+                    // ...
+                    }
                 break;
-            }
-        }
 
         renderer->clear();
         if (bg) renderer->drawTexture(bg, NULL, NULL);
