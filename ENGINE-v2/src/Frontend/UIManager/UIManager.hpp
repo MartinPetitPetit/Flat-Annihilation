@@ -16,7 +16,7 @@ public:
 
     // Menu principal
     int  showMainMenu(DISPLAY_OPTIONS& options,Sound& sound);
-    void showOptionsMenu(DISPLAY_OPTIONS& options);
+    void showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound);
 
 private:
     // Helpers menu

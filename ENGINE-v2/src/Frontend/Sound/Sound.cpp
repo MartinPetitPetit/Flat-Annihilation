@@ -1,5 +1,6 @@
 #include "Sound.hpp"
 #include <iostream>
+#include <algorithm>
 
 Sound::Sound()
 {

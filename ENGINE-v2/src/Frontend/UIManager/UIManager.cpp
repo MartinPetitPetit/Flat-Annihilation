@@ -42,7 +42,7 @@ void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected)
     SDL_DestroyTexture(tex);
 }
 
-int UIManager::showMainMenu(DISPLAY_OPTIONS& options)
+int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 {
     const int   N      = 4;
     const char* labels[N] = { "Generate Map", "Solo vs IA", "Multiplayer", "Options" };
@@ -70,38 +70,36 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options)
                 if (ev.key.keysym.sym == SDLK_UP)    { sel--; if (sel < 0) sel = N-1; }
                 if (ev.key.keysym.sym == SDLK_DOWN)  { sel++; if (sel >= N) sel = 0; }
                 if (ev.key.keysym.sym == SDLK_RETURN) {
-                    if (sel == 3) { showOptionsMenu(options); }
+                    if (sel == 3) { showOptionsMenu(options, sound); }
                     else { result = sel; isOpen = false; }
                 }
                 if (ev.key.keysym.sym == SDLK_ESCAPE) isOpen = false;
                 break;
-            case SDL_MOUSEMOTION:
-                for (int i = 0; i < N; i++)
-                    if (ev.motion.x >= rects[i].x && ev.motion.x <= rects[i].x+rects[i].w &&
-                        ev.motion.y >= rects[i].y && ev.motion.y <= rects[i].y+rects[i].h)
-                        sel = i;
-                for (int i = 0; i < N; i++)
-                    if (/* collision */ && sel != i) {
-                        sound.play("hover");  // ← son au survol
-                        sel = i;
-                }
-                break;
+			case SDL_MOUSEMOTION:
+				for (int i = 0; i < N; i++) {
+					int mx = ev.motion.x, my = ev.motion.y;
+					if (mx >= rects[i].x && mx <= rects[i].x + rects[i].w &&
+						my >= rects[i].y && my <= rects[i].y + rects[i].h && sel != i) {
+						sound.play("hover");
+						sel = i;
+					}
+				}
+				break;
             case SDL_MOUSEBUTTONDOWN:
-                if (ev.button.button == SDL_BUTTON_LEFT)
-                    for (int i = 0; i < N; i++)
-                        if (ev.button.x >= rects[i].x && ev.button.x <= rects[i].x+rects[i].w &&
-                            ev.button.y >= rects[i].y && ev.button.y <= rects[i].y+rects[i].h) {
-                            if (i == 3) showOptionsMenu(options);
+                if (ev.button.button == SDL_BUTTON_LEFT) {
+                    int mx = ev.button.x, my = ev.button.y;
+                    for (int i = 0; i < N; i++) {
+                        if (mx >= rects[i].x && mx <= rects[i].x + rects[i].w &&
+                            my >= rects[i].y && my <= rects[i].y + rects[i].h) {
+                            sound.play("click");
+                            if (i == 3) showOptionsMenu(options, sound);
                             else { result = i; isOpen = false; }
                         }
-                    if (ev.button.button == SDL_BUTTON_LEFT)
-                        for (int i = 0; i < N; i++)
-                if (/* collision */) {
-                    sound.play("click");  // ← jouer le son
-                    // ...
                     }
+                }
                 break;
-
+			}
+		}
         renderer->clear();
         if (bg) renderer->drawTexture(bg, NULL, NULL);
         for (int i = 0; i < N; i++) drawButton(labels[i], rects[i], i == sel);
@@ -110,9 +108,10 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options)
 
     if (bg) SDL_DestroyTexture(bg);
     return result;
+	
 }
 
-void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options)
+void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 {
     const int RES_COUNT = 4;
     const char* res_labels[RES_COUNT] = { "800x600","1280x720","1920x1080","2560x1440" };
@@ -198,6 +197,7 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options)
     options.height     = res_h[currentRes];
     options.fullscreen = fullscreen;
 }
+
 
 void UIManager::renderHUD()
 {

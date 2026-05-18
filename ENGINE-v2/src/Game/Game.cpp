@@ -8,8 +8,8 @@ Game::Game()
     IMG_Init(IMG_INIT_PNG);
 
 	ptr_sound = std::make_unique<Sound>();
-	ptr_sound->load("click",  "sounds/click.wav");
-	ptr_sound->load("hover",  "sounds/hover.wav");	
+	ptr_sound->load("click",  "sounds/rhoo.wav");
+	ptr_sound->load("hover",  "sounds/ptiou.wav");	
 
     ptr_window   = std::make_unique<Window>("Flat Annihilation", options);
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
