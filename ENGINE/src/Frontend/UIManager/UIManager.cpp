@@ -18,17 +18,21 @@
 #include <SDL2/SDL_image.h>
 #include <cstring>
 
-UIManager::UIManager(Renderer& r) : renderer(&r) {}
+UIManager::UIManager(Renderer& r, Window& w) : renderer(&r), window(&w) {}
 
-void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected)
+void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool disabled)
 {
-    SDL_Color bg  = selected ? SDL_Color{80,80,20,180} : SDL_Color{30,30,30,160};
-    SDL_Color brd = { 150, 150, 150, 255 };
+    SDL_Color bg  = disabled  ? SDL_Color{20,20,20,120}
+                  : selected  ? SDL_Color{80,80,20,180}
+                              : SDL_Color{30,30,30,160};
+    SDL_Color brd = disabled  ? SDL_Color{70,70,70,180}
+                              : SDL_Color{150,150,150,255};
     renderer->drawRect(rect, bg,  true);
     renderer->drawRect(rect, brd, false);
 
-    // Texte centré
-    SDL_Color col = selected ? SDL_Color{255,220,0,255} : SDL_Color{200,200,200,255};
+    SDL_Color col = disabled  ? SDL_Color{80,80,80,180}
+                  : selected  ? SDL_Color{255,220,0,255}
+                              : SDL_Color{200,200,200,255};
     SDL_Surface* surf = TTF_RenderText_Blended(renderer->getFont(), label, col);
     if (!surf) return;
     SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), surf);
@@ -45,12 +49,9 @@ void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected)
 int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 {
     const int   N      = 4;
-    const char* labels[N] = { "Generate Map", "Solo vs IA", "Multiplayer", "Options" };
+    const char* labels[N] = { "generate map", "solo vs ia", "multiplayer", "options" };
     int btnW = 320, btnH = 50;
-    int startY = options.height / 2 - (N * (btnH + 15)) / 2;
-    SDL_Rect rects[N];
-    for (int i = 0; i < N; i++)
-        rects[i] = { options.width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+	SDL_Rect rects[N]; // sera recalculé à chaque frame
 
     // Fond
     SDL_Texture* bg = nullptr;
@@ -63,6 +64,9 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     int  result = -1;
 
     while (isOpen) {
+		int startY = options.height / 2 - (N * (btnH + 15)) / 2;
+		for (int i = 0; i < N; i++)
+			rects[i] = { options.width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
         while (SDL_PollEvent(&ev)) {
             switch (ev.type) {
             case SDL_QUIT: isOpen = false; break;
@@ -102,7 +106,7 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 		}
         renderer->clear();
         if (bg) renderer->drawTexture(bg, NULL, NULL);
-        for (int i = 0; i < N; i++) drawButton(labels[i], rects[i], i == sel);
+        for (int i = 0; i < N; i++) drawButton(labels[i], rects[i], i == sel,false);
         renderer->present();
     }
 
@@ -113,10 +117,10 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 
 void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 {
-    const int RES_COUNT = 4;
-    const char* res_labels[RES_COUNT] = { "800x600","1280x720","1920x1080","2560x1440" };
-    const int   res_w[RES_COUNT]      = { 800, 1280, 1920, 2560 };
-    const int   res_h[RES_COUNT]      = { 600,  720, 1080, 1440 };
+    const int RES_COUNT = 5;
+    const char* res_labels[RES_COUNT] = { "200x200","800x600","1280x720","1920x1080","2560x1440" };
+    const int   res_w[RES_COUNT]      = { 600, 800, 1280, 1920, 2560 };
+    const int   res_h[RES_COUNT]      = { 600, 600,  720, 1080, 1440 };
 
     int currentRes = 0;
     for (int i = 0; i < RES_COUNT; i++)
@@ -124,7 +128,7 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
     bool fullscreen = options.fullscreen;
 
     const int   M      = 3;
-    const char* labels[M] = { "Resolution", "Fullscreen", "Back" };
+    const char* labels[M] = { "resolution", "fullscreen", "back" };
     int btnW = 460, btnH = 50;
     int startY = options.height/2 - (M*(btnH+15))/2;
     SDL_Rect rects[M];
@@ -142,14 +146,20 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
             case SDL_KEYDOWN:
                 if (ev.key.keysym.sym == SDLK_UP)    { sel--; if (sel<0) sel=M-1; }
                 if (ev.key.keysym.sym == SDLK_DOWN)  { sel++; if (sel>=M) sel=0; }
-                if (ev.key.keysym.sym == SDLK_LEFT)  {
-                    if (sel==0) { currentRes--; if (currentRes<0) currentRes=RES_COUNT-1; }
-                    if (sel==1) fullscreen = !fullscreen;
-                }
-                if (ev.key.keysym.sym == SDLK_RIGHT) {
-                    if (sel==0) { currentRes++; if (currentRes>=RES_COUNT) currentRes=0; }
-                    if (sel==1) fullscreen = !fullscreen;
-                }
+				if (ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT) {
+					if (sel==0 && !fullscreen) {  // ← bloqué si fullscreen
+						if (ev.key.keysym.sym == SDLK_LEFT) { currentRes--; if (currentRes<0) currentRes=RES_COUNT-1; }
+						else                                 { currentRes++; if (currentRes>=RES_COUNT) currentRes=0; }
+						applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+						startY = options.height/2 - (M*(btnH+15))/2;
+						for (int j = 0; j < M; j++)
+							rects[j] = { options.width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
+					}
+					if (sel==1) {
+						fullscreen = !fullscreen;
+						applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+					}
+				}
                 if (ev.key.keysym.sym == SDLK_RETURN && sel==2) isOpen = false;
                 if (ev.key.keysym.sym == SDLK_ESCAPE) isOpen = false;
                 break;
@@ -164,22 +174,32 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
                     for (int i = 0; i < M; i++)
                         if (ev.button.x >= rects[i].x && ev.button.x <= rects[i].x+rects[i].w &&
                             ev.button.y >= rects[i].y && ev.button.y <= rects[i].y+rects[i].h) {
-                            if (i==0) currentRes = (currentRes+1) % RES_COUNT;
-                            if (i==1) fullscreen = !fullscreen;
-                            if (i==2) isOpen = false;
+                            if (i==0 && !fullscreen) {  // ← bloqué si fullscreen
+								currentRes = (currentRes+1) % RES_COUNT;
+								applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+								startY = options.height/2 - (M*(btnH+15))/2;
+								for (int j = 0; j < M; j++)
+									rects[j] = { options.width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
+							}
+							if (i==1) {
+								fullscreen = !fullscreen;
+								applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+							}
+							if (i==2) isOpen = false;
                         }
                 break;
             }
         }
 
         renderer->clear();
-        for (int i = 0; i < M; i++) {
-            drawButton(labels[i], rects[i], i == sel);
+		for (int i = 0; i < M; i++) {
+			bool disabled = (i == 0 && fullscreen); // résolution grisée si fullscreen
+			drawButton(labels[i], rects[i], i == sel && !disabled, disabled);
 
             // Valeur à droite
             char val[64] = "";
-            if (i==0) snprintf(val, sizeof(val), "< %s >", res_labels[currentRes]);
-            if (i==1) snprintf(val, sizeof(val), "< %s >", fullscreen ? "ON" : "OFF");
+            if (i==0) snprintf(val, sizeof(val), " %s ", res_labels[currentRes]);
+            if (i==1) snprintf(val, sizeof(val), " %s ", fullscreen ? "on" : "off");
             if (val[0]) {
                 SDL_Color cyan = { 0, 220, 255, 255 };
                 SDL_Surface* vs = TTF_RenderText_Blended(renderer->getFont(), val, cyan);
@@ -192,10 +212,6 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
         }
         renderer->present();
     }
-
-    options.width      = res_w[currentRes];
-    options.height     = res_h[currentRes];
-    options.fullscreen = fullscreen;
 }
 
 
@@ -218,4 +234,18 @@ void UIManager::renderDragRect(SelectionManager& sel)
 {
     if (!sel.getIsDragging()) return;
     renderer->drawRect(sel.getDragRect(), { 255, 255, 255, 120 }, false);
+}
+
+void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool fullscreen)
+{
+    printf("applyResolution appelé : %dx%d fs=%d\n", w, h, fullscreen); // ← debug
+    bool fsChanged     = (fullscreen != options.fullscreen);
+    options.width      = w;
+    options.height     = h;
+    options.fullscreen = fullscreen;
+    window->resize(w, h);
+    if (fsChanged)
+        window->setFullscreen(fullscreen);
+    renderer->updateViewport(w, h);
+    printf("après resize, window dit : %dx%d\n", window->getOptions().width, window->getOptions().height); // ← debug
 }

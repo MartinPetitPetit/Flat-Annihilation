@@ -20,6 +20,7 @@ public:
     void drawRect(const SDL_Rect& rect, SDL_Color color, bool filled);
     void drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options);
     void drawText(const char* text, int x, int y);
+    void updateViewport(int w, int h);
 
     // Zoom
     void applyZoom(int mouseX, int mouseY, int direction);

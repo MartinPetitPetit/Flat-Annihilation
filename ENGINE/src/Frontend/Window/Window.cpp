@@ -45,3 +45,11 @@ void Window::setFullscreen(bool fs)
     options.fullscreen = fs;
     SDL_SetWindowFullscreen(sdlWindow, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
+void Window::resize(int width, int height)
+{
+    printf("Window::resize appelé : %dx%d\n", width, height); // ← debug
+    options.width  = width;
+    options.height = height;
+    SDL_SetWindowSize(sdlWindow, width, height);
+    SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+}

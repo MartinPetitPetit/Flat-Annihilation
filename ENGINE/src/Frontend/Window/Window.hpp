@@ -23,4 +23,5 @@ public:
     Vector2i        getSize()      const;
     bool            isValid()      const;
     void            setFullscreen(bool fs);
+    void            resize(int width, int height);
 };

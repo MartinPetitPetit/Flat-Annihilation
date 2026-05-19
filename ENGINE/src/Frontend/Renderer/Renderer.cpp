@@ -86,7 +86,11 @@ void Renderer::applyZoom(int mouseX, int mouseY, int direction)
     offsetX = mouseX - (mouseX - offsetX) * scale / oldScale;
     offsetY = mouseY - (mouseY - offsetY) * scale / oldScale;
 }
-
+void Renderer::updateViewport(int w, int h) {
+    SDL_RenderSetLogicalSize(sdlRenderer, 0, 0); // désactive le scaling automatique
+    SDL_Rect vp = { 0, 0, w, h };
+    SDL_RenderSetViewport(sdlRenderer, &vp);
+}
 void Renderer::setOffset(int x, int y) { offsetX = x; offsetY = y; }
 int  Renderer::getOffsetX() const      { return offsetX; }
 int  Renderer::getOffsetY() const      { return offsetY; }
