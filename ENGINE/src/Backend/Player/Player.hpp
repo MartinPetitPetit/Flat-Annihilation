@@ -2,10 +2,12 @@
 
 
 
+#include <string>
 #include <vector>
 
 
 #include "../Entity/Entity.hpp"
+#include "../Resource/Resource.hpp"
 
 class Player
 {
@@ -15,7 +17,7 @@ class Player
 		Player(int i);
 		virtual ~Player();
 
-		const char *getName() const;
+		const std::string getName() const;
 
 	private:
 
@@ -26,8 +28,10 @@ class Player
 	protected:
 
 		int id;
-		const char *name;
+		std::string name;
+		std::vector<Resource> Resources;
 		std::vector<Entity*> entities;
+
 
 
 };

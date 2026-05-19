@@ -1,5 +1,4 @@
-#ifndef RESOURCE_HPP
-#define RESOURCE_HPP
+#pragma once
 
 enum ResourceType {food, wood, stone, gold};
 
@@ -20,9 +19,3 @@ class Resource
         
     protected:
 };
-
-
-
-
-
-#endif

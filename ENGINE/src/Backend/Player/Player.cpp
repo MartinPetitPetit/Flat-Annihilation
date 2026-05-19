@@ -1,50 +1,24 @@
-#ifndef PLAYER_CPP
-#define PLAYER_CPP
-
-
-
-#include <cstdio>
 #include <iostream>
-#include <new>
 
 #include "Player.hpp"
 
-
-
-
 Player::Player()
 {
-	char *buffer = new char;
-    std::cout << "nom du joueur : ? ";
-    std::cin >> buffer;
-	this->name = buffer;
-	delete buffer;
+	std::cout << "nom du joueur : ? ";
+	std::cin >> this->name;
 }
-
-
 
 Player::Player(int i)
 {
- 	char *buffer = new char[30];
-	sprintf(buffer, "IA%i", i);
-	this->name = buffer;
-	delete[] buffer;
+	name = "IA" + std::to_string(i);
 }
-
-
 
 Player::~Player()
 {
-	std::cout << "destruction du joueur " << this->name << "\n";
-	delete this->name;
+	std::cout << "destruction du joueur " << name << "\n";
 }
 
-
-
-const char *Player::getName() const
+const std::string Player::getName() const
 {
-	return this->name;
+	return name;
 }
-
-
-#endif
