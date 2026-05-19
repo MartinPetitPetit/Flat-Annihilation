@@ -40,52 +40,6 @@ void set_terrain(MAP& map, int x, int y, TERRAIN terrain)
     }
 }
 
-void affiche_map(const MAP& map)
-{
-    // Start first printed row.
-    std::cout << "|";
-
-    // Browse all map rows.
-    for (int x = 0; x < static_cast<int>(map.size()); x++) {
-
-        // Browse all cells in the current row.
-        for (int y = 0; y < static_cast<int>(map[x].size()); y++) {
-
-            // Print plain terrain.
-            if (map[x][y].type_terrain == Plain) {
-                std::cout << "🟩";
-            }
-
-            // Print mountain terrain.
-            else if (map[x][y].type_terrain == Montain) {
-                std::cout << "🟫";
-            }
-
-            // Print river terrain.
-            else if (map[x][y].type_terrain == River) {
-                std::cout << "🟦";
-            }
-
-            // Print lake terrain.
-            else if (map[x][y].type_terrain == Lake) {
-                std::cout << "🟦";
-            }
-
-            // Print every other terrain.
-            else {
-                std::cout << "⬛";
-            }
-        }
-
-        // Move to next printed row.
-        std::cout << "\n|";
-    }
-
-    // Finish terminal output.
-    std::cout << "\n";
-}
-
-
 /*
  *   ============================================================
  *   FULL MAP GENERATION
