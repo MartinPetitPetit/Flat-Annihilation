@@ -1,3 +1,0 @@
-tableau 2D d'offuscation par joueur
-
-le json contient les unités, batiment avec vie sprite
