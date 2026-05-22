@@ -440,14 +440,7 @@ void draw_ravine(MAP& map, int x, int y, int dir, const GenerationConfig& cfg)
         static_cast<double>(std::max(1, static_cast<int>(path.size()) - 1));
 
         int width_here = width_for_progress(profile, progress);
-        int local_dir = dir;
 
-        if (i + 1 < static_cast<int>(path.size())) {
-            local_dir = local_dir_from_points(path[i], path[i + 1], dir);
-        }
-        else if (i > 0) {
-            local_dir = local_dir_from_points(path[i - 1], path[i], dir);
-        }
 
         int bound = std::max(2, width_here);
 

@@ -47,5 +47,7 @@ std::unique_ptr<Sound> ptr_sound;
     int  MAP_W   { 0     };
     int  MAP_H   { 0     };
     bool running { false };
+    int   hudFPS  { 0 };
+    int   hudTPS  { 0 };
     Uint64 currentTick { 0 }; // horloge interne du jeu
 };

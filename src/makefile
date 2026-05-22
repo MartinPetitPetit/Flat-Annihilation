@@ -1,6 +1,6 @@
 cc    = g++
 flags = -Wall -std=c++17
-deps  = -I./Frontend/Window \
+includes = -I./Frontend/Window \
 	-I./Frontend/Renderer \
 	-I./Frontend/EventManager \
 	-I./Frontend/SelectionManager \
@@ -8,8 +8,9 @@ deps  = -I./Frontend/Window \
 	-I./Backend/Map \
 	-I./Backend/Player \
 	-I./Backend/Cell \
-	-I./Game \
-	-lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer \
+	-I./Game
+
+libs  = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer
 
 srcs  = main.cpp \
 	Game/Game.cpp \
@@ -38,10 +39,11 @@ hdrs  = Game/Game.hpp \
 	Backend/Player/Player.hpp \
 	Backend/Cell/Cell.hpp \
 	Frontend/Sound/Sound.hpp
+
 exe   = flat_annihilation
 
 $(exe) : $(srcs) $(hdrs)
-	$(cc) $(flags) $(srcs) -o $(exe) $(deps)
+	$(cc) $(flags) $(includes) $(srcs) -o $(exe) $(libs)
 
 clean:
 	rm -f $(exe)

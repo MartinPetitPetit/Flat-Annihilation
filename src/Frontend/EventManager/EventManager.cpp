@@ -18,8 +18,8 @@
 
 #include "EventManager.hpp"
 
-EventManager::EventManager(SelectionManager& s, Renderer& r)
-    : selMgr(&s), renderer(&r) {}
+EventManager::EventManager(SelectionManager& s, Renderer& r, UIManager& u)
+    : selMgr(&s), renderer(&r), uiManager(&u) {}
 
 void EventManager::pollEvents()
 {
@@ -54,8 +54,10 @@ bool EventManager::isQuit() const { return quit; }
 
 void EventManager::onMouseDown(int x, int y, int btn)
 {
-    if (btn == SDL_BUTTON_LEFT)
+    if (btn == SDL_BUTTON_LEFT) {
+        if (uiManager->handleHUDClick(x, y)) return; // clic consommé par le HUD
         selMgr->startDrag(x, y);
+    }
 
     if (btn == SDL_BUTTON_RIGHT) {
         dragging         = true;

@@ -18,7 +18,7 @@ Game::Game()
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer, *ptr_window);
     ptr_selectionManager = std::make_unique<SelectionManager>();
-    ptr_eventManager = std::make_unique<EventManager>(*ptr_selectionManager, *ptr_renderer);
+    ptr_eventManager = std::make_unique<EventManager>(*ptr_selectionManager, *ptr_renderer, *ptr_uiManager);
 }
 
 Game::~Game()
@@ -89,11 +89,15 @@ void Game::run()
 
         this->ptr_eventManager->pollEvents();
 
+        // Gestion pause via clic HUD (intercepté avant EventManager pour les boutons)
+        // Note : le clic HUD est géré dans EventManager via handleHUDClick
+
         while (tickAccumulator >= TICK_DELAY)
         {
-            this->update();
+            if (!ptr_uiManager->isGamePaused())
+                this->update();
             tickAccumulator -= TICK_DELAY;
-            tickCount++;  // ← compter les ticks
+            if (!ptr_uiManager->isGamePaused()) tickCount++;
 
             if (tickAccumulator > TICK_DELAY * 5) {
                 tickAccumulator = 0;
@@ -120,21 +124,25 @@ void Game::run()
         // -- Affichage des stats toutes les secondes
         Uint32 statsNow = SDL_GetTicks();
         if (statsNow - lastStatsTime >= 1000)
-			{
-				float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
-				int   minutes         = static_cast<int>(gameTimeSeconds) / 60;
-				int   seconds         = static_cast<int>(gameTimeSeconds) % 60;
+        {
+            hudFPS = frameCount;
+            hudTPS = tickCount;
+            ptr_uiManager->setHUDStats(hudFPS, hudTPS, currentTick, TICK_RATE);
 
-				std::cout << "FPS: "   << frameCount
-						<< " | TPS: " << tickCount
-						<< " | tick: " << currentTick
-						<< " | temps: " << minutes << "m" << seconds << "s"
-						<< "\r" << std::flush;
+            float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
+            int   minutes         = static_cast<int>(gameTimeSeconds) / 60;
+            int   seconds         = static_cast<int>(gameTimeSeconds) % 60;
 
-				frameCount    = 0;
-				tickCount     = 0;
-				lastStatsTime = statsNow;
-			}
+            std::cout << "FPS: "    << frameCount
+                      << " | TPS: " << tickCount
+                      << " | tick: " << currentTick
+                      << " | temps: " << minutes << "m" << seconds << "s"
+                      << "\r" << std::flush;
+
+            frameCount    = 0;
+            tickCount     = 0;
+            lastStatsTime = statsNow;
+        }
     }
 
     std::cout << "\n"; // saut de ligne propre à la fin

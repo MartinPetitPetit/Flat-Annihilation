@@ -20,6 +20,62 @@
 
 UIManager::UIManager(Renderer& r, Window& w) : renderer(&r), window(&w) {}
 
+void UIManager::setHUDStats(int fps, int tps, Uint64 tick, int tickRateVal)
+{
+    currentFPS = fps;
+    currentTPS = tps;
+    gameTick   = tick;
+    tickRate   = tickRateVal;
+}
+
+bool UIManager::isGamePaused() const { return gamePaused; }
+
+// ---------- Helpers HUD ----------
+
+void UIManager::drawHUDRect(SDL_Rect r, SDL_Color fill, SDL_Color border)
+{
+    renderer->drawRect(r, fill,   true);
+    renderer->drawRect(r, border, false);
+}
+
+void UIManager::drawHUDText(const char* text, int x, int y, SDL_Color color)
+{
+    if (!renderer->getFont()) return;
+    SDL_Surface* surf = TTF_RenderText_Blended(renderer->getFont(), text, color);
+    if (!surf) return;
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), surf);
+    SDL_Rect dst = { x, y, surf->w, surf->h };
+    renderer->drawTexture(tex, NULL, &dst);
+    SDL_FreeSurface(surf);
+    SDL_DestroyTexture(tex);
+}
+
+// ---------- Rects HUD (positions relatives à la fenêtre) ----------
+
+SDL_Rect UIManager::getHUDPauseRect() const
+{
+    int w = window->getOptions().width;
+    return { w - 160, 60, 70, 30 };
+}
+
+SDL_Rect UIManager::getHUDStopRect() const
+{
+    int w = window->getOptions().width;
+    return { w - 85, 60, 70, 30 };
+}
+
+SDL_Rect UIManager::getHUDSelectionRect() const
+{
+    int h = window->getOptions().height;
+    return { 0, h - 160, 280, 160 };
+}
+
+SDL_Rect UIManager::getHUDBuildingRect() const
+{
+    int w = window->getOptions().width;
+    int h = window->getOptions().height;
+    return { 282, h - 70, w - 284, 70 };
+}
 void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool disabled)
 {
     SDL_Color bg  = disabled  ? SDL_Color{20,20,20,120}
@@ -217,9 +273,77 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 
 void UIManager::renderHUD()
 {
-    // TODO
-}
+    int w = window->getOptions().width;
+    int h = window->getOptions().height;
 
+    SDL_Color transparent  = {   0,   0,   0, 140 };
+    SDL_Color borderWhite  = { 255, 255, 255, 220 };
+    SDL_Color borderCyan   = {   0, 220, 255, 255 };
+    SDL_Color borderYellow = { 255, 220,   0, 255 };
+    SDL_Color borderRed    = { 255,  60,  60, 255 };
+    SDL_Color borderGreen  = {  60, 200,  60, 255 };
+
+    // --- FPS (haut gauche) ---
+    SDL_Rect fpsBox = { 4, 4, 130, 50 };
+    drawHUDRect(fpsBox, transparent, borderCyan);
+    char fps_str[32];
+    snprintf(fps_str, sizeof(fps_str), "fps: %d", currentFPS);
+    drawHUDText(fps_str, 10, 10, { 0, 220, 255, 255 });
+    char tps_str[32];
+    snprintf(tps_str, sizeof(tps_str), "tps: %d", currentTPS);
+    drawHUDText(tps_str, 10, 30, { 0, 220, 255, 255 });
+
+    // --- Game Time (haut droite) ---
+    float gameTimeSec = static_cast<float>(gameTick) / (tickRate > 0 ? tickRate : 1);
+    int   minutes     = static_cast<int>(gameTimeSec) / 60;
+    int   seconds     = static_cast<int>(gameTimeSec) % 60;
+    char  time_str[32];
+    snprintf(time_str, sizeof(time_str), "%02d:%02d", minutes, seconds);
+
+    SDL_Rect timeBox = { w - 165, 4, 161, 50 };
+    drawHUDRect(timeBox, transparent, borderYellow);
+    drawHUDText("game time", w - 155, 8,  { 255, 220, 0, 255 });
+    drawHUDText(time_str,    w - 135, 28, { 255, 255, 255, 255 });
+
+    // --- Bouton PAUSE ---
+    SDL_Rect pauseRect = getHUDPauseRect();
+    SDL_Color pauseColor = gamePaused
+        ? SDL_Color{ 255, 180,  0, 200 }
+        : SDL_Color{  40,  40, 40, 180 };
+    drawHUDRect(pauseRect, pauseColor, borderYellow);
+    drawHUDText(gamePaused ? "resume" : "pause", pauseRect.x + 6, pauseRect.y + 7, { 255, 220, 0, 255 });
+
+    // --- Bouton STOP ---
+    SDL_Rect stopRect = getHUDStopRect();
+    drawHUDRect(stopRect, { 120, 0, 0, 180 }, borderRed);
+    drawHUDText("stop", stopRect.x + 18, stopRect.y + 7, { 255, 60, 60, 255 });
+
+    // --- Panneau unités sélectionnées (bas gauche) ---
+    SDL_Rect selRect = getHUDSelectionRect();
+    drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
+    drawHUDText("selected units", selRect.x + 8, selRect.y + 8,  { 200, 200, 200, 255 });
+    drawHUDText("summary",        selRect.x + 8, selRect.y + 30, { 150, 150, 150, 255 });
+    // placeholder : icône vide
+    SDL_Rect iconPlaceholder = { selRect.x + 8, selRect.y + 55, selRect.w - 16, selRect.h - 65 };
+    drawHUDRect(iconPlaceholder, { 30, 30, 60, 120 }, { 80, 80, 120, 255 });
+    drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
+
+    // --- Barre de construction (bas, hors panneau sélection) ---
+    SDL_Rect buildRect = getHUDBuildingRect();
+    drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
+    drawHUDText("building bar", buildRect.x + 12, buildRect.y + 25, { 60, 200, 60, 255 });
+    // Placeholders boutons de construction
+    int slotW = 60, slotH = 50, slotMargin = 8;
+    int slotX = buildRect.x + 160;
+    for (int i = 0; i < 8 && slotX + slotW < buildRect.x + buildRect.w - 4; i++) {
+        SDL_Rect slot = { slotX, buildRect.y + (buildRect.h - slotH) / 2, slotW, slotH };
+        drawHUDRect(slot, { 20, 60, 20, 160 }, { 60, 180, 60, 200 });
+        char label[4];
+        snprintf(label, sizeof(label), "B%d", i + 1);
+        drawHUDText(label, slot.x + 20, slot.y + 16, { 100, 255, 100, 255 });
+        slotX += slotW + slotMargin;
+    }
+}
 void UIManager::renderMinimap(MAP& map, int MAP_W, int MAP_H)
 {
     // TODO
@@ -234,6 +358,26 @@ void UIManager::renderDragRect(SelectionManager& sel)
 {
     if (!sel.getIsDragging()) return;
     renderer->drawRect(sel.getDragRect(), { 255, 255, 255, 120 }, false);
+}
+bool UIManager::handleHUDClick(int mx, int my)
+{
+    SDL_Rect pauseRect = getHUDPauseRect();
+    SDL_Rect stopRect  = getHUDStopRect();
+
+    auto inRect = [](int x, int y, SDL_Rect r) {
+        return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+    };
+
+    if (inRect(mx, my, pauseRect)) {
+        gamePaused = !gamePaused;
+        return true;
+    }
+    if (inRect(mx, my, stopRect)) {
+        // Pour l'instant : même effet que quitter
+        // À relier à Game::stopGame() plus tard via un flag
+        return true;
+    }
+    return false;
 }
 
 void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool fullscreen)
