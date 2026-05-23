@@ -10,7 +10,16 @@ includes = -I./Frontend/Window \
 	-I./Backend/Cell \
 	-I./Game
 
-libs  = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer
+# Détection de l'OS
+ifeq ($(OS),Windows_NT)
+	# Windows (MSYS2/MinGW)
+	libs = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer
+	exe_ext = .exe
+else
+	# Linux
+	libs = -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer
+	exe_ext =
+endif
 
 srcs  = main.cpp \
 	Game/Game.cpp \
@@ -42,8 +51,10 @@ hdrs  = Game/Game.hpp \
 
 exe   = flat_annihilation
 
-$(exe) : $(srcs) $(hdrs)
-	$(cc) $(flags) $(includes) $(srcs) -o $(exe) $(libs)
+$(exe)$(exe_ext) : $(srcs) $(hdrs)
+	$(cc) $(flags) $(includes) $(srcs) -o $(exe)$(exe_ext) $(libs)
 
 clean:
-	rm -f $(exe)
+	rm -f $(exe)$(exe_ext)
+
+.PHONY: clean
