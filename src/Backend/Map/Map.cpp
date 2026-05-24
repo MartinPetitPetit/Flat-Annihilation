@@ -383,14 +383,15 @@ void generate_map(MAP& map)
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
-            map[x][y].type_terrain = Plain;
-            map[x][y].type_struct = None_Struct;
-            map[x][y].type_unit = None_Unit;
+            map[x][y].type_terrain  = Plain;
+            map[x][y].type_unit     = None_Unit;
             map[x][y].type_resource = None_Resource;
-            map[x][y].wood_type = No_Wood;
-            map[x][y].has_berry = false;
-            map[x][y].walkable = true;
-            map[x][y].occupied = false;
+            map[x][y].wood_type     = No_Wood;
+            map[x][y].has_berry     = false;
+            map[x][y].walkable      = true;
+            map[x][y].occupied      = false;
+            map[x][y].buildingID    = -1;
+            map[x][y].buildingOwner = -1;
         }
     }
 

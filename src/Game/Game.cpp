@@ -88,6 +88,24 @@ void Game::run()
         tickAccumulator += elapsed;
 
         this->ptr_eventManager->pollEvents();
+        // Placement de bâtiment
+        if (ptr_eventManager->pendingBuild && !ptr_players.empty()) {
+            int mx = ptr_eventManager->pendingBuildX;
+            int my = ptr_eventManager->pendingBuildY;
+            int scale   = ptr_renderer->getScale();
+            int offsetX = ptr_renderer->getOffsetX();
+            int offsetY = ptr_renderer->getOffsetY();
+
+            int cellX = (mx - offsetX) / scale;
+            int cellY = (my - offsetY) / scale;
+
+            ptr_players[0]->placeBuilding(
+                ptr_uiManager->getSelectedBuildingType(),
+                cellX, cellY, *ptr_map
+            );
+            ptr_uiManager->cancelBuildingMode();
+            ptr_eventManager->consumeBuild();
+        }
 
         // Gestion pause via clic HUD (intercepté avant EventManager pour les boutons)
         // Note : le clic HUD est géré dans EventManager via handleHUDClick
@@ -109,9 +127,29 @@ void Game::run()
         if (FPS_CAP == 0 || static_cast<float>(frameNow - lastFrame) >= FRAME_DELAY)
         {
         this->ptr_renderer->clear();
+// Récupère joueurs pour affichage
+        std::vector<Player*> rawPlayers;
+        for (auto& p : ptr_players) rawPlayers.push_back(p.get());
+
         this->ptr_renderer->drawMap(*ptr_map, MAP_W, MAP_H, options);
+        this->ptr_uiManager->renderBuildings(*ptr_map, rawPlayers,
+            ptr_renderer->getScale(),
+            ptr_renderer->getOffsetX(),
+            ptr_renderer->getOffsetY());
         this->ptr_uiManager->renderDragRect(*ptr_selectionManager);
-        this->ptr_uiManager->renderHUD();
+
+        // Ghost de placement
+        if (ptr_uiManager->isInBuildingMode()) {
+            int mx, my;
+            SDL_GetMouseState(&mx, &my);
+            ptr_uiManager->renderBuildingGhost(mx, my,
+                ptr_uiManager->getSelectedBuildingType(),
+                ptr_renderer->getScale(),
+                ptr_renderer->getOffsetX(),
+                ptr_renderer->getOffsetY());
+        }
+
+        this->ptr_uiManager->renderHUD(ptr_players.empty() ? nullptr : ptr_players[0].get());
         this->ptr_renderer->present();
             lastFrame = frameNow;
             frameCount++;  // ← compter les frames

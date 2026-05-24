@@ -271,35 +271,39 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 }
 
 
-void UIManager::renderHUD()
+void UIManager::renderHUD(const Player* localPlayer)
 {
     int w = window->getOptions().width;
-    int h = window->getOptions().height;
 
     SDL_Color transparent  = {   0,   0,   0, 140 };
-    SDL_Color borderWhite  = { 255, 255, 255, 220 };
     SDL_Color borderCyan   = {   0, 220, 255, 255 };
     SDL_Color borderYellow = { 255, 220,   0, 255 };
     SDL_Color borderRed    = { 255,  60,  60, 255 };
     SDL_Color borderGreen  = {  60, 200,  60, 255 };
+    SDL_Color borderWhite  = { 255, 255, 255, 220 };
 
-    // --- FPS (haut gauche) ---
+    // --- FPS ---
     SDL_Rect fpsBox = { 4, 4, 130, 50 };
     drawHUDRect(fpsBox, transparent, borderCyan);
-    char fps_str[32];
-    snprintf(fps_str, sizeof(fps_str), "fps: %d", currentFPS);
+    char fps_str[32]; snprintf(fps_str, sizeof(fps_str), "fps: %d", currentFPS);
+    char tps_str[32]; snprintf(tps_str, sizeof(tps_str), "tps: %d", currentTPS);
     drawHUDText(fps_str, 10, 10, { 0, 220, 255, 255 });
-    char tps_str[32];
-    snprintf(tps_str, sizeof(tps_str), "tps: %d", currentTPS);
     drawHUDText(tps_str, 10, 30, { 0, 220, 255, 255 });
 
-    // --- Game Time (haut droite) ---
-    float gameTimeSec = static_cast<float>(gameTick) / (tickRate > 0 ? tickRate : 1);
-    int   minutes     = static_cast<int>(gameTimeSec) / 60;
-    int   seconds     = static_cast<int>(gameTimeSec) % 60;
-    char  time_str[32];
-    snprintf(time_str, sizeof(time_str), "%02d:%02d", minutes, seconds);
+    // --- Ressources joueur ---
+    if (localPlayer) {
+        SDL_Rect resBox = { 140, 4, 160, 25 };
+        drawHUDRect(resBox, transparent, { 160, 120, 60, 255 });
+        char wood_str[32];
+        snprintf(wood_str, sizeof(wood_str), "wood: %d", localPlayer->getWood());
+        drawHUDText(wood_str, 148, 8, { 200, 180, 100, 255 });
+    }
 
+    // --- Game Time ---
+    float gameTimeSec = static_cast<float>(gameTick) / (tickRate > 0 ? tickRate : 1);
+    int minutes = static_cast<int>(gameTimeSec) / 60;
+    int seconds = static_cast<int>(gameTimeSec) % 60;
+    char time_str[32]; snprintf(time_str, sizeof(time_str), "%02d:%02d", minutes, seconds);
     SDL_Rect timeBox = { w - 165, 4, 161, 50 };
     drawHUDRect(timeBox, transparent, borderYellow);
     drawHUDText("game time", w - 155, 8,  { 255, 220, 0, 255 });
@@ -307,9 +311,7 @@ void UIManager::renderHUD()
 
     // --- Bouton PAUSE ---
     SDL_Rect pauseRect = getHUDPauseRect();
-    SDL_Color pauseColor = gamePaused
-        ? SDL_Color{ 255, 180,  0, 200 }
-        : SDL_Color{  40,  40, 40, 180 };
+    SDL_Color pauseColor = gamePaused ? SDL_Color{255,180,0,200} : SDL_Color{40,40,40,180};
     drawHUDRect(pauseRect, pauseColor, borderYellow);
     drawHUDText(gamePaused ? "resume" : "pause", pauseRect.x + 6, pauseRect.y + 7, { 255, 220, 0, 255 });
 
@@ -318,30 +320,80 @@ void UIManager::renderHUD()
     drawHUDRect(stopRect, { 120, 0, 0, 180 }, borderRed);
     drawHUDText("stop", stopRect.x + 18, stopRect.y + 7, { 255, 60, 60, 255 });
 
-    // --- Panneau unités sélectionnées (bas gauche) ---
+    // --- Panneau sélection ---
     SDL_Rect selRect = getHUDSelectionRect();
     drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
     drawHUDText("selected units", selRect.x + 8, selRect.y + 8,  { 200, 200, 200, 255 });
     drawHUDText("summary",        selRect.x + 8, selRect.y + 30, { 150, 150, 150, 255 });
-    // placeholder : icône vide
     SDL_Rect iconPlaceholder = { selRect.x + 8, selRect.y + 55, selRect.w - 16, selRect.h - 65 };
     drawHUDRect(iconPlaceholder, { 30, 30, 60, 120 }, { 80, 80, 120, 255 });
     drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
 
-    // --- Barre de construction (bas, hors panneau sélection) ---
+    // --- Building bar ---
     SDL_Rect buildRect = getHUDBuildingRect();
     drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
-    drawHUDText("building bar", buildRect.x + 12, buildRect.y + 25, { 60, 200, 60, 255 });
-    // Placeholders boutons de construction
-    int slotW = 60, slotH = 50, slotMargin = 8;
-    int slotX = buildRect.x + 160;
-    for (int i = 0; i < 8 && slotX + slotW < buildRect.x + buildRect.w - 4; i++) {
-        SDL_Rect slot = { slotX, buildRect.y + (buildRect.h - slotH) / 2, slotW, slotH };
-        drawHUDRect(slot, { 20, 60, 20, 160 }, { 60, 180, 60, 200 });
-        char label[4];
-        snprintf(label, sizeof(label), "B%d", i + 1);
-        drawHUDText(label, slot.x + 20, slot.y + 16, { 100, 255, 100, 255 });
-        slotX += slotW + slotMargin;
+
+    // Bouton Town Center
+    SDL_Rect tcBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
+    bool tcSelected = inBuildingMode && selectedBuildingType == BuildingType::TownCenter;
+    SDL_Color tcFill = tcSelected ? SDL_Color{80,80,20,220} : SDL_Color{20,60,20,180};
+    drawHUDRect(tcBtn, tcFill, tcSelected ? SDL_Color{255,220,0,255} : borderGreen);
+    drawHUDText("TC",         tcBtn.x + 32, tcBtn.y + 8,  { 100, 255, 100, 255 });
+    drawHUDText("w:100",      tcBtn.x + 14, tcBtn.y + 28, { 180, 140, 80,  255 });
+}
+bool UIManager::isInBuildingMode() const { return inBuildingMode; }
+BuildingType UIManager::getSelectedBuildingType() const { return selectedBuildingType; }
+void UIManager::cancelBuildingMode() { inBuildingMode = false; }
+
+void UIManager::renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
+                                    int scale, int offsetX, int offsetY)
+{
+    const BuildingDef& def = getBuildingDef(type);
+
+    // Convertir position souris -> cellule
+    int cellX = (mouseX - offsetX) / scale;
+    int cellY = (mouseY - offsetY) / scale;
+
+    SDL_Rect ghost;
+    ghost.x = offsetX + cellX * scale;
+    ghost.y = offsetY + cellY * scale;
+    ghost.w = def.sizeX * scale;
+    ghost.h = def.sizeY * scale;
+
+    renderer->drawRect(ghost, { 255, 220, 0, 80  }, true);
+    renderer->drawRect(ghost, { 255, 220, 0, 200 }, false);
+}
+
+void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& players,
+                                int scale, int offsetX, int offsetY)
+{
+    for (const Player* p : players) {
+        if (!p) continue;
+        for (const auto& b : p->getBuildings()) {
+            if (!b->isAlive()) continue;
+            const BuildingDef& def = getBuildingDef(b->getType());
+
+            SDL_Rect r;
+            r.x = offsetX + b->getMapX() * scale;
+            r.y = offsetY + b->getMapY() * scale;
+            r.w = def.sizeX * scale;
+            r.h = def.sizeY * scale;
+
+            // Couleur selon propriétaire (bleu joueur 0, rouge IA)
+            SDL_Color fill   = (b->getOwnerID() == 0)
+                               ? SDL_Color{ 30, 60, 180, 200 }
+                               : SDL_Color{ 180, 30, 30, 200 };
+            SDL_Color border = (b->getOwnerID() == 0)
+                               ? SDL_Color{ 100, 160, 255, 255 }
+                               : SDL_Color{ 255, 100, 100, 255 };
+
+            renderer->drawRect(r, fill,   true);
+            renderer->drawRect(r, border, false);
+
+            if (scale >= 8) {
+                drawHUDText(def.name.c_str(), r.x + 2, r.y + 2, { 220, 220, 220, 255 });
+            }
+        }
     }
 }
 void UIManager::renderMinimap(MAP& map, int MAP_W, int MAP_H)
@@ -368,15 +420,22 @@ bool UIManager::handleHUDClick(int mx, int my)
         return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
     };
 
-    if (inRect(mx, my, pauseRect)) {
-        gamePaused = !gamePaused;
+    if (inRect(mx, my, pauseRect)) { gamePaused = !gamePaused; return true; }
+    if (inRect(mx, my, stopRect))  { return true; }
+
+    // Bouton Town Center dans la building bar
+    SDL_Rect buildRect = getHUDBuildingRect();
+    SDL_Rect tcBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
+    if (inRect(mx, my, tcBtn)) {
+        if (inBuildingMode && selectedBuildingType == BuildingType::TownCenter)
+            inBuildingMode = false;  // désélectionne si déjà actif
+        else {
+            inBuildingMode       = true;
+            selectedBuildingType = BuildingType::TownCenter;
+        }
         return true;
     }
-    if (inRect(mx, my, stopRect)) {
-        // Pour l'instant : même effet que quitter
-        // À relier à Game::stopGame() plus tard via un flag
-        return true;
-    }
+
     return false;
 }
 

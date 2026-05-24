@@ -17,6 +17,11 @@ public:
     void pollEvents();
     bool isQuit() const;
 private:
+    public:
+        bool pendingBuild  { false };
+        int  pendingBuildX { 0     };
+        int  pendingBuildY { 0     };
+    void consumeBuild() { pendingBuild = false; }
     void onMouseDown(int x, int y, int btn);
     void onMouseUp  (int x, int y, int btn);
     void onMouseMotion(int x, int y);

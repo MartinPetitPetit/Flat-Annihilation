@@ -55,11 +55,23 @@ bool EventManager::isQuit() const { return quit; }
 void EventManager::onMouseDown(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        if (uiManager->handleHUDClick(x, y)) return; // clic consommé par le HUD
+        if (uiManager->handleHUDClick(x, y)) return;
+
+        // Mode placement bâtiment
+        if (uiManager->isInBuildingMode()) {
+            // Le placement réel est délégué à Game via un flag
+            // On notifie juste via un membre dédié
+            pendingBuildX = x;
+            pendingBuildY = y;
+            pendingBuild  = true;
+            return;
+        }
+
         selMgr->startDrag(x, y);
     }
 
     if (btn == SDL_BUTTON_RIGHT) {
+        uiManager->cancelBuildingMode();
         dragging         = true;
         dragStartX       = x;
         dragStartY       = y;
@@ -67,7 +79,6 @@ void EventManager::onMouseDown(int x, int y, int btn)
         dragStartOffsetY = renderer->getOffsetY();
     }
 }
-
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
