@@ -380,10 +380,10 @@ void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& play
             r.h = def.sizeY * scale;
 
             // Couleur selon propriétaire (bleu joueur 0, rouge IA)
-            SDL_Color fill   = (b->getOwnerID() == 0)
+            SDL_Color fill   = (b->getTeam() == 0)
                                ? SDL_Color{ 30, 60, 180, 200 }
                                : SDL_Color{ 180, 30, 30, 200 };
-            SDL_Color border = (b->getOwnerID() == 0)
+            SDL_Color border = (b->getTeam() == 0)
                                ? SDL_Color{ 100, 160, 255, 255 }
                                : SDL_Color{ 255, 100, 100, 255 };
 

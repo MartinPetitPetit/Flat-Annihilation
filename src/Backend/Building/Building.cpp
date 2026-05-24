@@ -14,21 +14,15 @@ const BuildingDef& getBuildingDef(BuildingType type)
 }
 
 Building::Building(int id, BuildingType type, int ownerID, int mapX, int mapY)
-    : id(id), type(type), ownerID(ownerID), mapX(mapX), mapY(mapY)
+    : type(type)
 {
-    hp = getBuildingDef(type).maxHP;
+    this->id     = id;
+    this->team   = ownerID;
+    this->health = getBuildingDef(type).maxHP;
+    this->getPosRef().setX(mapX);
+    this->getPosRef().setY(mapY);
 }
 
-BuildingType Building::getType()    const { return type;    }
-int          Building::getID()      const { return id;      }
-int          Building::getOwnerID() const { return ownerID; }
-int          Building::getMapX()    const { return mapX;    }
-int          Building::getMapY()    const { return mapY;    }
-int          Building::getHP()      const { return hp;      }
-bool         Building::isAlive()    const { return hp > 0;  }
-
-void Building::takeDamage(int amount)
-{
-    hp -= amount;
-    if (hp < 0) hp = 0;
-}
+BuildingType Building::getType()  const { return type;              }
+int          Building::getMapX()  const { return getPos().getX();   }
+int          Building::getMapY()  const { return getPos().getY();   }

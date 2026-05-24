@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "../Entity/Entity.hpp"
 
 enum class BuildingType {
     TownCenter,
@@ -16,26 +17,15 @@ struct BuildingDef {
 
 const BuildingDef& getBuildingDef(BuildingType type);
 
-class Building {
+class Building : public Entity {
 public:
     Building(int id, BuildingType type, int ownerID, int mapX, int mapY);
-    ~Building() = default;
+    ~Building() override = default;
 
     BuildingType getType()    const;
-    int          getID()      const;
-    int          getOwnerID() const;
     int          getMapX()    const;
     int          getMapY()    const;
-    int          getHP()      const;
-    bool         isAlive()    const;
-
-    void takeDamage(int amount);
 
 private:
-    int          id;
     BuildingType type;
-    int          ownerID;
-    int          mapX;
-    int          mapY;
-    int          hp;
 };

@@ -69,7 +69,7 @@ bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP& map)
 Building* Player::getBuilding(int buildingID) const
 {
     for (const auto& b : buildings)
-        if (b->getID() == buildingID) return b.get();
+        if (b->getTeam() == buildingID) return b.get();
     return nullptr;
 }
 

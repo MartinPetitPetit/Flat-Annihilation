@@ -37,6 +37,7 @@ srcs  = main.cpp \
 	Backend/Cell/Cell.cpp \
 	Backend/Player/Player.cpp \
 	Backend/Building/Building.cpp \
+	Backend/Entity/Entity.cpp \
 	Frontend/Sound/Sound.cpp
 
 hdrs  = Game/Game.hpp \
@@ -49,6 +50,8 @@ hdrs  = Game/Game.hpp \
 	Backend/Player/Player.hpp \
 	Backend/Cell/Cell.hpp \
 	Backend/Building/Building.hpp \
+	Backend/Entity/Entity.hpp \
+	Backend/Coordinate/Coordinate.hpp \
 	Frontend/Sound/Sound.hpp
 
 exe   = flat_annihilation
