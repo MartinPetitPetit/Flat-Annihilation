@@ -1,4 +1,7 @@
 #include "Renderer.hpp"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
+
 
 Renderer::Renderer(Window& window, const char* font_path)
 {
@@ -39,11 +42,6 @@ void Renderer::drawRect(const SDL_Rect& rect, SDL_Color color, bool filled)
     else        SDL_RenderDrawRect(sdlRenderer, &rect);
 }
 
-void Renderer::drawFilledCirclePublic(int cx, int cy, int radius, SDL_Color color)
-{
-    drawFilledCircle(cx, cy, radius, color);
-}
-
 void Renderer::drawFilledCircle(int cx, int cy, int radius, SDL_Color color)
 {
     if (radius <= 0) {
@@ -70,499 +68,9 @@ void Renderer::drawFilledCircle(int cx, int cy, int radius, SDL_Color color)
 
 /*
  * ============================================================
- * TREE DRAWING
+ * UI
  * ============================================================
  */
-
-void Renderer::drawTreeModel(const SDL_Rect& cell, WOOD_TYPE wood_type)
-{
-    switch (wood_type) {
-        case Wood_A:
-            drawRoundTree(cell);
-            break;
-
-        case Wood_B:
-            drawPineTree(cell);
-            break;
-
-        case Wood_C:
-            drawSmallTree(cell);
-            break;
-
-        case No_Wood:
-        default:
-            drawRoundTree(cell);
-            break;
-    }
-}
-
-void Renderer::drawRoundTree(const SDL_Rect& cell)
-{
-    if (cell.w < 6 || cell.h < 6) {
-        SDL_Rect smallTree;
-        smallTree.x = cell.x + cell.w / 4;
-        smallTree.y = cell.y + cell.h / 4;
-        smallTree.w = std::max(1, cell.w / 2);
-        smallTree.h = std::max(1, cell.h / 2);
-
-        drawRect(smallTree, { 0, 80, 0, 255 }, true);
-        return;
-    }
-
-    int cx = cell.x + cell.w / 2;
-    int cy = cell.y + cell.h / 2;
-
-    int trunkW = std::max(1, cell.w / 5);
-    int trunkH = std::max(2, cell.h / 3);
-
-    SDL_Rect trunk;
-    trunk.x = cx - trunkW / 2;
-    trunk.y = cell.y + cell.h / 2;
-    trunk.w = trunkW;
-    trunk.h = trunkH;
-
-    drawRect(trunk, { 100, 60, 20, 255 }, true);
-
-    int r = std::max(2, cell.w / 4);
-
-    drawFilledCircle(cx, cy - cell.h / 8, r, { 0, 100, 0, 255 });
-    drawFilledCircle(cx - r / 2, cy, r, { 0, 130, 0, 255 });
-    drawFilledCircle(cx + r / 2, cy, r, { 0, 90, 0, 255 });
-}
-
-void Renderer::drawPineTree(const SDL_Rect& cell)
-{
-    if (cell.w < 6 || cell.h < 6) {
-        SDL_Rect smallTree;
-        smallTree.x = cell.x + cell.w / 4;
-        smallTree.y = cell.y + cell.h / 4;
-        smallTree.w = std::max(1, cell.w / 2);
-        smallTree.h = std::max(1, cell.h / 2);
-
-        drawRect(smallTree, { 0, 110, 0, 255 }, true);
-        return;
-    }
-
-    int cx = cell.x + cell.w / 2;
-
-    int trunkW = std::max(1, cell.w / 6);
-    int trunkH = std::max(2, cell.h / 4);
-
-    SDL_Rect trunk;
-    trunk.x = cx - trunkW / 2;
-    trunk.y = cell.y + (cell.h * 2) / 3;
-    trunk.w = trunkW;
-    trunk.h = trunkH;
-
-    drawRect(trunk, { 90, 55, 20, 255 }, true);
-
-    SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_BLEND);
-
-    int topY = cell.y + cell.h / 8;
-    int midY = cell.y + cell.h / 2;
-    int bottomY = cell.y + (cell.h * 3) / 4;
-
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 90, 0, 255);
-
-    for (int y = topY; y <= midY; y++) {
-        int relative = y - topY;
-        int halfWidth = (relative * cell.w) / cell.h;
-
-        SDL_RenderDrawLine(
-            sdlRenderer,
-            cx - halfWidth,
-            y,
-            cx + halfWidth,
-            y
-        );
-    }
-
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 120, 0, 255);
-
-    for (int y = cell.y + cell.h / 3; y <= bottomY; y++) {
-        int relative = y - (cell.y + cell.h / 3);
-        int halfWidth = (relative * cell.w) / cell.h + cell.w / 8;
-
-        if (halfWidth > cell.w / 2) {
-            halfWidth = cell.w / 2;
-        }
-
-        SDL_RenderDrawLine(
-            sdlRenderer,
-            cx - halfWidth,
-            y,
-            cx + halfWidth,
-            y
-        );
-    }
-}
-
-void Renderer::drawSmallTree(const SDL_Rect& cell)
-{
-    if (cell.w < 6 || cell.h < 6) {
-        SDL_Rect smallTree;
-        smallTree.x = cell.x + cell.w / 4;
-        smallTree.y = cell.y + cell.h / 4;
-        smallTree.w = std::max(1, cell.w / 2);
-        smallTree.h = std::max(1, cell.h / 2);
-
-        drawRect(smallTree, { 60, 130, 40, 255 }, true);
-        return;
-    }
-
-    int cx = cell.x + cell.w / 2;
-    int cy = cell.y + cell.h / 2;
-
-    int trunkW = std::max(1, cell.w / 6);
-    int trunkH = std::max(2, cell.h / 3);
-
-    SDL_Rect trunk;
-    trunk.x = cx - trunkW / 2;
-    trunk.y = cy;
-    trunk.w = trunkW;
-    trunk.h = trunkH;
-
-    drawRect(trunk, { 130, 85, 35, 255 }, true);
-
-    int r = std::max(2, cell.w / 5);
-
-    drawFilledCircle(cx, cy - r, r, { 80, 150, 40, 255 });
-    drawFilledCircle(cx - r, cy, r, { 60, 130, 40, 255 });
-    drawFilledCircle(cx + r, cy, r, { 90, 160, 50, 255 });
-}
-
-/*
- * ============================================================
- * BUSH / BERRY DRAWING
- * ============================================================
- */
-
-void Renderer::drawLeaf(int cx, int cy, int size, SDL_Color color)
-{
-    drawFilledCircle(cx, cy, size, color);
-    drawFilledCircle(cx + size / 2, cy - size / 3, size / 2, color);
-    drawFilledCircle(cx - size / 2, cy + size / 3, size / 2, color);
-
-    SDL_SetRenderDrawColor(sdlRenderer, 20, 90, 20, 255);
-
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx - size,
-        cy + size,
-        cx + size,
-        cy - size
-    );
-}
-
-void Renderer::drawBerry(int cx, int cy, int radius)
-{
-    drawFilledCircle(cx, cy, radius, { 190, 20, 35, 255 });
-    drawFilledCircle(cx - radius / 3, cy - radius / 3, radius / 3, { 255, 130, 130, 255 });
-
-    SDL_SetRenderDrawColor(sdlRenderer, 80, 20, 20, 255);
-    SDL_RenderDrawPoint(sdlRenderer, cx + radius / 2, cy + radius / 2);
-}
-
-void Renderer::drawBerryBushModel(const SDL_Rect& cell, bool hasBerry)
-{
-    int cx = cell.x + cell.w / 2;
-    int cy = cell.y + cell.h / 2;
-
-    int s = cell.w;
-
-    if (cell.h < s) {
-        s = cell.h;
-    }
-
-    if (s < 4) {
-        return;
-    }
-
-    int leafSize = std::max(2, s / 5);
-    int berryRadius = std::max(2, s / 8);
-
-    /*
-     * Branches.
-     */
-    SDL_SetRenderDrawColor(sdlRenderer, 80, 50, 25, 255);
-
-    SDL_RenderDrawLine(sdlRenderer, cx, cy, cx - s / 4, cy - s / 5);
-    SDL_RenderDrawLine(sdlRenderer, cx, cy, cx + s / 4, cy - s / 5);
-    SDL_RenderDrawLine(sdlRenderer, cx, cy, cx - s / 6, cy + s / 4);
-    SDL_RenderDrawLine(sdlRenderer, cx, cy, cx + s / 6, cy + s / 4);
-
-    /*
-     * Leaves.
-     */
-    drawLeaf(cx - s / 4, cy - s / 4, leafSize, { 70, 160, 60, 255 });
-    drawLeaf(cx + s / 4, cy - s / 4, leafSize, { 90, 180, 65, 255 });
-    drawLeaf(cx,       cy - s / 3, leafSize, { 60, 140, 55, 255 });
-
-    if (!hasBerry) {
-        drawLeaf(cx - s / 8, cy + s / 8, leafSize, { 50, 130, 45, 255 });
-        drawLeaf(cx + s / 8, cy + s / 8, leafSize, { 70, 150, 50, 255 });
-        return;
-    }
-
-    /*
-     * Berries.
-     */
-    drawBerry(cx - s / 5,  cy + s / 8, berryRadius);
-    drawBerry(cx,          cy + s / 6, berryRadius);
-    drawBerry(cx + s / 5,  cy + s / 8, berryRadius);
-    drawBerry(cx - s / 10, cy + s / 3, berryRadius);
-    drawBerry(cx + s / 10, cy + s / 3, berryRadius);
-}
-void Renderer::drawLeafEllipse(
-    int cx,
-    int cy,
-    int rx,
-    int ry,
-    SDL_Color fillColor,
-    SDL_Color veinColor
-)
-{
-    /*
-     * Draws a filled ellipse used as a stylized leaf.
-     */
-
-    if (rx <= 0 || ry <= 0) {
-        return;
-    }
-
-    SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(
-        sdlRenderer,
-        fillColor.r,
-        fillColor.g,
-        fillColor.b,
-        fillColor.a
-    );
-
-    /*
-     * Fill ellipse.
-     */
-    for (int y = -ry; y <= ry; y++) {
-        for (int x = -rx; x <= rx; x++) {
-
-            double nx = static_cast<double>(x) / static_cast<double>(rx);
-            double ny = static_cast<double>(y) / static_cast<double>(ry);
-
-            if (nx * nx + ny * ny <= 1.0) {
-                SDL_RenderDrawPoint(sdlRenderer, cx + x, cy + y);
-            }
-        }
-    }
-
-    /*
-     * Draw central vein.
-     */
-    SDL_SetRenderDrawColor(
-        sdlRenderer,
-        veinColor.r,
-        veinColor.g,
-        veinColor.b,
-        veinColor.a
-    );
-
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx,
-        cy - ry,
-        cx,
-        cy + ry
-    );
-
-    /*
-     * Draw side veins.
-     */
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx,
-        cy - ry / 2,
-        cx - rx / 2,
-        cy - ry / 4
-    );
-
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx,
-        cy - ry / 2,
-        cx + rx / 2,
-        cy - ry / 4
-    );
-
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx,
-        cy,
-        cx - rx / 2,
-        cy + ry / 6
-    );
-
-    SDL_RenderDrawLine(
-        sdlRenderer,
-        cx,
-        cy,
-        cx + rx / 2,
-        cy + ry / 6
-    );
-}
-
-void Renderer::drawBerryCluster(int cx, int cy, int berryRadius)
-{
-    /*
-     * Draws a small cluster of berries.
-     */
-
-    if (berryRadius <= 0) {
-        return;
-    }
-
-    SDL_Color berryRed       = { 220, 30, 40, 255 };
-    SDL_Color berryDark      = { 150, 0, 25, 255 };
-    SDL_Color berryHighlight = { 255, 150, 160, 255 };
-
-    /*
-     * Berry positions around the cluster center.
-     */
-    int offsets[5][2] = {
-        { -berryRadius, 0 },
-        { 0, 0 },
-        { berryRadius, 0 },
-        { -berryRadius / 2, berryRadius },
-        { berryRadius / 2, berryRadius }
-    };
-
-    for (int i = 0; i < 5; i++) {
-        int bx = cx + offsets[i][0];
-        int by = cy + offsets[i][1];
-
-        drawFilledCircle(bx, by, berryRadius, berryRed);
-
-        drawFilledCircle(
-            bx + berryRadius / 3,
-            by + berryRadius / 3,
-            std::max(1, berryRadius / 2),
-                         berryDark
-        );
-
-        drawFilledCircle(
-            bx - berryRadius / 3,
-            by - berryRadius / 3,
-            std::max(1, berryRadius / 3),
-                         berryHighlight
-        );
-    }
-}
-void Renderer::drawBushModel(const SDL_Rect& cell, bool hasBerry)
-{
-    int s = cell.w < cell.h ? cell.w : cell.h;
-
-    if (s < 6) {
-        // Very small zoom fallback.
-        SDL_Color bushColor = hasBerry
-        ? SDL_Color{ 70, 160, 70, 255 }
-        : SDL_Color{ 110, 190, 110, 255 };
-
-        drawRect(cell, bushColor, true);
-
-        if (hasBerry) {
-            SDL_Rect berryRect;
-            berryRect.x = cell.x + cell.w / 3;
-            berryRect.y = cell.y + cell.h / 3;
-            berryRect.w = cell.w / 3;
-            berryRect.h = cell.h / 3;
-            drawRect(berryRect, { 220, 30, 30, 255 }, true);
-        }
-        return;
-    }
-
-    int cx = cell.x + cell.w / 2;
-    int cy = cell.y + cell.h / 2;
-
-    SDL_Color outerLeaf = { 60, 140, 50, 255 };
-    SDL_Color midLeaf   = { 90, 180, 70, 255 };
-    SDL_Color innerLeaf = { 150, 220, 110, 255 };
-    SDL_Color veinColor = { 50, 120, 45, 255 };
-
-    int leafRxOuter = s / 9;
-    int leafRyOuter = s / 6;
-
-    int leafRxMid   = s / 10;
-    int leafRyMid   = s / 6;
-
-    int leafRxInner = s / 11;
-    int leafRyInner = s / 7;
-
-    // OUTER RING
-    int outerOffsets[12][2] = {
-        { -s/4, -s/4 }, { 0, -s/3 }, { s/4, -s/4 },
-        { -s/3, 0 },    { s/3, 0 },
-        { -s/4, s/4 },  { 0, s/3 },  { s/4, s/4 },
-        { -s/5, -s/3 }, { s/5, -s/3 },
-        { -s/5, s/3 },  { s/5, s/3 }
-    };
-
-    for (int i = 0; i < 12; i++) {
-        drawLeafEllipse(
-            cx + outerOffsets[i][0],
-            cy + outerOffsets[i][1],
-            leafRxOuter,
-            leafRyOuter,
-            outerLeaf,
-            veinColor
-        );
-    }
-
-    // MIDDLE RING
-    int midOffsets[10][2] = {
-        { -s/5, -s/5 }, { 0, -s/5 }, { s/5, -s/5 },
-        { -s/5, 0 },    { s/5, 0 },
-        { -s/5, s/5 },  { 0, s/5 },  { s/5, s/5 },
-        { -s/7, -s/8 }, { s/7, -s/8 }
-    };
-
-    for (int i = 0; i < 10; i++) {
-        drawLeafEllipse(
-            cx + midOffsets[i][0],
-            cy + midOffsets[i][1],
-            leafRxMid,
-            leafRyMid,
-            midLeaf,
-            veinColor
-        );
-    }
-
-    // INNER CORE
-    int innerOffsets[7][2] = {
-        { 0, 0 },
-        { -s/8, -s/8 }, { s/8, -s/8 },
-        { -s/8, s/8 },  { s/8, s/8 },
-        { 0, -s/6 },    { 0, s/6 }
-    };
-
-    for (int i = 0; i < 7; i++) {
-        drawLeafEllipse(
-            cx + innerOffsets[i][0],
-            cy + innerOffsets[i][1],
-            leafRxInner,
-            leafRyInner,
-            innerLeaf,
-            veinColor
-        );
-    }
-
-    // If the bush has berries, add 3 berry clusters like the reference.
-    if (hasBerry) {
-        int berryRadius = s / 12;
-        if (berryRadius < 2) berryRadius = 2;
-
-        drawBerryCluster(cx - s / 6, cy - s / 8, berryRadius);
-        drawBerryCluster(cx + s / 6, cy - s / 8, berryRadius);
-        drawBerryCluster(cx,         cy + s / 6, berryRadius);
-    }
-}
 
 void Renderer::drawText(const char* text, int x, int y)
 {
@@ -576,8 +84,9 @@ void Renderer::drawText(const char* text, int x, int y)
     SDL_DestroyTexture(tex);
 }
 
-void Renderer::drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
+void Renderer::drawMap(const MAP &map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
 {
+
     int realWidth = static_cast<int>(map.size());
 
     if (realWidth == 0) {
@@ -674,41 +183,46 @@ void Renderer::drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
             resourceRect.y = cell.y + cell.h / 4;
             resourceRect.w = std::max(1, cell.w / 2);
             resourceRect.h = std::max(1, cell.h / 2);
+			if (map[x][y].resource != nullptr) {
+				switch (map[x][y].resource->getResourceType()) {
+					case wood:
 
-            switch (map[x][y].type_resource) {
-                case tree:
-                    drawTreeModel(cell, map[x][y].wood_type);
-                    break;
+						map[x][y].resource->render(this->sdlRenderer, resourceRect);
+						break;
 
-                case stone:
-                    drawRect(resourceRect, { 120, 120, 120, 255 }, true);
-                    break;
+					case stone:
+						drawRect(resourceRect, { 120, 120, 120, 255 }, true);
+						break;
 
-                case gold:
-                    drawRect(resourceRect, { 255, 215, 0, 255 }, true);
-                    break;
+					case gold:
+						drawRect(resourceRect, { 255, 215, 0, 255 }, true);
+						break;
 
-                case iron:
-                    drawRect(resourceRect, { 90, 90, 90, 255 }, true);
-                    break;
+					// case iron:
+					//     drawRect(resourceRect, { 90, 90, 90, 255 }, true);
+					//     break;
 
-                case Sapling:
-                    drawRect(resourceRect, { 0, 180, 60, 255 }, true);
-                    break;
+					// case Sapling:
+					//     drawRect(resourceRect, { 0, 180, 60, 255 }, true);
+					//     break;
 
-                case BushResource:
-                    /*
-                     * Bushes use the full cell at low zoom.
-                     * Do not use resourceRect here.
-                     */
-                    drawBushModel(cell, map[x][y].has_berry);
-                    break;
+					case food:
+						map[x][y].resource->render(this->sdlRenderer, resourceRect);
 
-                case None_Resource:
-                default:
-                    break;
-            }
+						if (map[x][y].has_berry == true) {
+							SDL_Surface *surface = IMG_Load("assets/berry.png"); 
+							SDL_Texture *texture = SDL_CreateTextureFromSurface(this->sdlRenderer, surface); 
+							SDL_FreeSurface(surface);
+							SDL_RenderCopy(this->sdlRenderer, texture, NULL, &resourceRect);
+							SDL_DestroyTexture(texture);
+						}
 
+						break;
+
+					default:
+						break;
+				}
+			}
             /*
              * ==================================================
              * PART 3: OPTIONAL GRID

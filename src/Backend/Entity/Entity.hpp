@@ -1,31 +1,44 @@
-#pragma once
+#pragma  once
+
+
 #include <vector>
 #include <SDL2/SDL_image.h>
+
 #include "../Coordinate/Coordinate.hpp"
 
 class Entity
 {
-public:
-    Entity();
-    virtual ~Entity();
+    public:
+        Entity();
+        
+        virtual ~Entity();
 
-    virtual void update();
-    void takeDamage(int amount);
-    void heal(int amount);
-    bool isAlive()    const;
-    bool isSelected() const;
 
-    Coordinate  getPos() const;
-    Coordinate& getPosRef();
+        void update();
+        // void render(r *Renderer);
+        void takeDamage(int amount);
+        void heal(int amount);
+        bool isAlive();
+        bool isSelected();
 
-    int getId()   const;
-    int getTeam() const;
-    int getHealth() const { return health; }
+        Coordinate getPos();
 
-protected:
-    int        id       { 0       };
-    Coordinate position;
-    int        health   { 0       };
-    SDL_Texture* texture{ nullptr };
-    int        team     { -1      };
+        int getId();
+
+        int getTeam();
+
+
+    private:
+
+
+    protected:
+        int id;
+        Coordinate position;
+        int health;
+        SDL_Texture* texture;
+        int team;
+
+
+
+
 };
