@@ -1,15 +1,15 @@
 #pragma once
 
-// enum ResourceType {food, wood, stone, gold};
+enum ResourceType {food, wood, stone, gold};
 
 
 
-// class Resource
-// {
+class Resource
+{
 
-//     public:
-//         Resource();
-//         virtual ~Resource();
+    public:
+        Resource();
+        virtual ~Resource();
 
 
 		Resource(ResourceType type, int amount, int maxAmount);
@@ -29,5 +29,5 @@
 		SDL_Surface *surface;
 		SDL_Texture *texture;
         
-//     protected:
-// };
+    protected:
+};
