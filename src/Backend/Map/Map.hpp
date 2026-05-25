@@ -2,9 +2,8 @@
 
 #include <utility>
 #include <vector>
+
 #include "../Cell/Cell.hpp"
-#include "../Unit/Unit.hpp"
-#include "../Resource/Resource.hpp"
 
 /*
  * ============================================================
@@ -15,47 +14,63 @@
 // Main procedural map type.
 using MAP = std::vector<std::vector<Cell>>;
 
-
 /*
  * ============================================================
- * classe Map
+ * OPTIONAL OOP WRAPPER
  * ============================================================
  */
 
+// Optional object-oriented wrapper.
+// The procedural generator still works directly with MAP.
 class Map
 {
-	public:
-		Map(int map_width, int map_height);
+public:
+    Map(int map_width, int map_height)
+    : grid(map_width, std::vector<Cell>(map_height)),
+    width(map_width),
+    height(map_height)
+    {
+    }
 
-		virtual ~Map() = default;
+    virtual ~Map() = default;
 
-		MAP& data()
-		{
-			return grid;
-		};
+    MAP& data()
+    {
+        return grid;
+    }
 
-		const MAP& data() const
-		{
-			return grid;
-		};
+    const MAP& data() const
+    {
+        return grid;
+    }
 
-		int get_width() const
-		{
-			return width;
-		};
+    int get_width() const
+    {
+        return width;
+    }
 
-		int get_height() const
-		{
-			return height;
-		};
+    int get_height() const
+    {
+        return height;
+    }
 
-		const MAP& getGrid() const;
-
-	private:
-		MAP grid;
-		int width;
-		int height;
+private:
+    MAP grid;
+    int width;
+    int height;
 };
+
+/*
+ * ============================================================
+ * DEFAULT MAP SIZE
+ * ============================================================
+ */
+
+// Default number of rows.
+constexpr int X_Max = 300;
+
+// Default number of columns.
+constexpr int Y_Max = 300;
 
 /*
  * ============================================================
@@ -240,6 +255,7 @@ struct RIVER {
 
 GenerationConfig make_generation_config(int width, int height);
 
+MAP create_map(int width, int height);
 void generate_map(MAP& map);
 void affiche_map(const MAP& map);
 
@@ -247,7 +263,7 @@ bool in_map(const MAP& map, int x, int y);
 void set_terrain(MAP& map, int x, int y, TERRAIN terrain);
 
 bool has_terrain_near(const MAP& map, int cx, int cy, TERRAIN terrain, int radius);
-bool has_resource_near(const MAP& map, int cx, int cy, ResourceType resource, int radius);
+bool has_resource_near(const MAP& map, int cx, int cy, RESOURCE resource, int radius);
 bool is_near_water(const MAP& map, int x, int y, int radius);
 
 /*
@@ -299,10 +315,11 @@ void draw_ravine_branch(MAP& map, int x, int y, int dir, int length);
 
 bool can_place_tree(const MAP& map, int x, int y);
 
-void place_tree(MAP& map, int x, int y);
+WOOD_TYPE choose_wood_type(const GenerationConfig& cfg);
+void place_tree(MAP& map, int x, int y, WOOD_TYPE wood_type);
 
 bool find_forest_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg);
-void paint_forest_patch(MAP& map, int cx, int cy, int radius, const GenerationConfig& cfg);
+void paint_forest_patch(MAP& map, int cx, int cy, int radius, WOOD_TYPE wood_type, const GenerationConfig& cfg);
 
 void create_forests(MAP& map, const GenerationConfig& cfg);
 void create_scattered_trees(MAP& map, const GenerationConfig& cfg);

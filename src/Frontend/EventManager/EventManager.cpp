@@ -1,25 +1,10 @@
-/*-SDL_Event event
-
--SelectionManager* selMgr
-
--bool quit
-
-+EventManager(selMgr SelectionManager&)
-
-+pollEvents() : void
-
-+isQuit() : bool
-
--onMouseDown(x,y,btn) : void
-
--onMouseUp(x,y,btn) : void
-
--onKeyDown(key) : void*/
-
 #include "EventManager.hpp"
+#include <algorithm>
 
-EventManager::EventManager(SelectionManager& s, Renderer& r, UIManager& u)
-    : selMgr(&s), renderer(&r), uiManager(&u) {}
+EventManager::EventManager(SelectionManager& s, Renderer& r,
+                           UIManager& u,
+                           std::vector<std::unique_ptr<Unit>>& unitList)
+    : selMgr(&s), renderer(&r), uiManager(&u), units(&unitList) {}
 
 void EventManager::pollEvents()
 {
@@ -55,11 +40,20 @@ bool EventManager::isQuit() const { return quit; }
 void EventManager::onMouseDown(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        if (uiManager->handleHUDClick(x, y)) return; // clic consommé par le HUD
+        if (uiManager->handleHUDClick(x, y)) return;
+
+        if (uiManager->isInBuildingMode()) {
+            pendingBuildX = x;
+            pendingBuildY = y;
+            pendingBuild  = true;
+            return;
+        }
+
         selMgr->startDrag(x, y);
     }
 
     if (btn == SDL_BUTTON_RIGHT) {
+        uiManager->cancelBuildingMode();
         dragging         = true;
         dragStartX       = x;
         dragStartY       = y;
@@ -71,8 +65,14 @@ void EventManager::onMouseDown(int x, int y, int btn)
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        std::vector<Unit*> allUnits;
-        selMgr->endDrag(x, y, allUnits);
+        // Collecter les raw pointers
+        std::vector<Unit*> rawUnits;
+        for (auto& u : *units) rawUnits.push_back(u.get());
+
+        selMgr->endDrag(x, y, rawUnits,
+                        renderer->getOffsetX(),
+                        renderer->getOffsetY(),
+                        renderer->getScale());
     }
     if (btn == SDL_BUTTON_RIGHT)
         dragging = false;
@@ -98,4 +98,8 @@ void EventManager::onMouseWheel(int x, int y, int direction)
 void EventManager::onKeyDown(SDL_Keycode key)
 {
     if (key == SDLK_ESCAPE) quit = true;
+
+    if (key == SDLK_DELETE || key == SDLK_KP_PERIOD) {
+        selMgr->deleteSelected(*units);
+    }
 }

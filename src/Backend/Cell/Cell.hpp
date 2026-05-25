@@ -1,69 +1,55 @@
 #pragma once
-
 #include <SDL2/SDL_image.h>
 
-#include "../Resource/Resource.hpp"
-
-
-
-
-/*
- * ============================================================
- * forward declaration
- * ============================================================
- */
-
-class Unit;
-
-/*
- * ============================================================
- * TERRAIN LAYER
- * ============================================================
- */
-
-// Ground layer.
 enum TERRAIN {
-	Plain,      // Basic terrain.
-	Montain,   // Mountain terrain.
-	Lake,      // Lake water.
-	River,     // River water.
-	Bush,      // Legacy terrain bush. Prefer RESOURCE::BushResource.
-	ravine     // Cracked terrain.
+    Plain,
+    Montain,
+    Lake,
+    River,
+    Bush,
+    ravine
 };
 
-/*
- * ============================================================
- * STRUCTURE LAYER
- * ============================================================
- */
-
-// Building layer.
-enum STRUCTURE {
-	None_Struct,
-	Usine,
-	Production,
+enum RESOURCE {
+    None_Resource,
+    tree,
+    stone,
+    gold,
+    iron,
+    Sapling,
+    BushResource
 };
 
-/*
- * ============================================================
- * CELL
- * ============================================================
- */
+enum UNIT {
+    None_Unit,
+    archer,
+    MONK
+};
+
+enum WOOD_TYPE {
+    No_Wood,
+    Wood_A,
+    Wood_B,
+    Wood_C
+};
 
 class Cell
 {
-	public:
+public:
+    Cell();
+    virtual ~Cell();
 
-		Cell();
-		virtual ~Cell();
+    TERRAIN   type_terrain;
+    RESOURCE  type_resource;
+    UNIT      type_unit;
+    WOOD_TYPE wood_type;
 
-		TERRAIN type_terrain;
-		STRUCTURE type_struct;
-		Resource *resource;
-		Unit *unit;
+    bool has_berry;
+    bool walkable;
+    bool occupied;
 
-		bool has_berry;
+    int buildingID    { -1 };
+    int buildingOwner { -1 };
 
-		bool walkable;
-		bool occupied;
+    SDL_Texture* texture;
 };

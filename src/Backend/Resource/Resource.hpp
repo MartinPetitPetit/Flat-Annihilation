@@ -1,33 +1,21 @@
 #pragma once
 
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_surface.h>
-
-enum ResourceType {food, wood, stone, gold};
+// enum ResourceType {food, wood, stone, gold};
 
 
 
-class Resource
-{
+// class Resource
+// {
 
-    public:
+//     public:
+//         Resource();
+//         virtual ~Resource();
 
-		Resource(ResourceType type);
 
-        virtual ~Resource();
-
-		void render(SDL_Renderer *renderer, SDL_Rect destination);
-
-		ResourceType getResourceType();
-
-    private:
-
-        ResourceType type;
-        int amount;
-        int maxAmount;
-
-		SDL_Surface *surface;
-		SDL_Texture *texture;
+//     private:
+//         ResourceType type;
+//         int amount;
+//         int maxAmount;
         
-    protected:
-};
+//     protected:
+// };

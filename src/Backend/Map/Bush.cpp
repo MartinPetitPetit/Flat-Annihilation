@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-
-
 /*
  * ============================================================
  * BUSH AND BERRY GENERATION
@@ -22,7 +20,7 @@ bool can_place_bush(const MAP& map, int x, int y)
     }
 
     // Avoid replacing resources.
-    if (map[x][y].resource != nullptr) {
+    if (map[x][y].type_resource != None_Resource) {
         return false;
     }
 
@@ -36,10 +34,13 @@ void place_bush(MAP& map, int x, int y, int berry_chance)
     }
 
     // The resource is a bush.
-    map[x][y].resource = new Resource(food);
+    map[x][y].type_resource = BushResource;
 
     // Berry is a bush state, not a separate resource.
     map[x][y].has_berry = (std::rand() % 100 < berry_chance);
+
+    // Bushes are not trees.
+    map[x][y].wood_type = No_Wood;
 }
 
 bool find_bush_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg)
@@ -170,7 +171,7 @@ void create_scattered_bushes(MAP& map, const GenerationConfig& cfg)
                 chance += cfg.near_water_bush_bonus;
             }
 
-            if (has_resource_near(map, x, y, food, 3)) {
+            if (has_resource_near(map, x, y, BushResource, 3)) {
                 chance += 2;
             }
 

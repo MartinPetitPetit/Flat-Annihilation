@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-
-
 /*
  * ============================================================
  * FOREST AND TREE GENERATION
@@ -22,20 +20,36 @@ bool can_place_tree(const MAP& map, int x, int y)
     }
 
     // Avoid replacing resources.
-    if (map[x][y].resource != nullptr) {
+    if (map[x][y].type_resource != None_Resource) {
         return false;
     }
 
     return true;
 }
 
+WOOD_TYPE choose_wood_type(const GenerationConfig& cfg)
+{
+    int roll = std::rand() % 100;
 
-void place_tree(MAP& map, int x, int y)
+    if (roll < cfg.wood_type_c_chance) {
+        return Wood_C;
+    }
+
+    if (roll < cfg.wood_type_c_chance + cfg.wood_type_b_chance) {
+        return Wood_B;
+    }
+
+    return Wood_A;
+}
+
+void place_tree(MAP& map, int x, int y, WOOD_TYPE wood_type)
 {
     if (!can_place_tree(map, x, y)) {
         return;
     }
-	map[x][y].resource = new Resource(wood);
+
+    map[x][y].type_resource = tree;
+    map[x][y].wood_type = wood_type;
     map[x][y].has_berry = false;
 }
 
@@ -76,7 +90,7 @@ bool find_forest_center(const MAP& map, int& x, int& y, const GenerationConfig& 
     return false;
 }
 
-void paint_forest_patch(MAP& map, int cx, int cy, int radius, const GenerationConfig& cfg)
+void paint_forest_patch(MAP& map, int cx, int cy, int radius, WOOD_TYPE wood_type, const GenerationConfig& cfg)
 {
     int r2 = radius * radius;
 
@@ -122,7 +136,7 @@ void paint_forest_patch(MAP& map, int cx, int cy, int radius, const GenerationCo
             }
 
             if (std::rand() % 100 < chance) {
-                place_tree(map, x, y);
+                place_tree(map, x, y, wood_type);
             }
         }
     }
@@ -144,7 +158,10 @@ void create_forests(MAP& map, const GenerationConfig& cfg)
         cfg.forest_min_radius +
         std::rand() % (cfg.forest_max_radius - cfg.forest_min_radius + 1);
 
-        paint_forest_patch(map, x, y, radius, cfg);
+        // One wood type per forest.
+        WOOD_TYPE wood_type = choose_wood_type(cfg);
+
+        paint_forest_patch(map, x, y, radius, wood_type, cfg);
     }
 }
 
@@ -167,7 +184,7 @@ void create_scattered_trees(MAP& map, const GenerationConfig& cfg)
                 chance += cfg.near_water_tree_bonus;
             }
 
-            if (has_resource_near(map, x, y, wood, 3)) {
+            if (has_resource_near(map, x, y, tree, 3)) {
                 chance += cfg.near_forest_tree_bonus;
             }
 
@@ -184,7 +201,7 @@ void create_scattered_trees(MAP& map, const GenerationConfig& cfg)
             }
 
             if (std::rand() % 100 < chance) {
-                place_tree(map, x, y);
+                place_tree(map, x, y, choose_wood_type(cfg));
             }
         }
     }
