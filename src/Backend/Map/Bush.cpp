@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-
-
 /*
  * ============================================================
  * BUSH AND BERRY GENERATION
@@ -36,10 +34,12 @@ void place_bush(MAP& map, int x, int y, int berry_chance)
     }
 
     // The resource is a bush.
-    map[x][y].resource = new Resource(food);
+	int maxAmount = std::rand() % 100;
+	int amount = 0;
+	
+	if (maxAmount > 25) amount = std::rand() % (maxAmount/2);
 
-    // Berry is a bush state, not a separate resource.
-    map[x][y].has_berry = (std::rand() % 100 < berry_chance);
+    map[x][y].resource = new Resource(food, amount, maxAmount);
 }
 
 bool find_bush_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg)

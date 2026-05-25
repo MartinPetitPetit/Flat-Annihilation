@@ -12,7 +12,7 @@ class Resource
 
     public:
 
-		Resource(ResourceType type);
+		Resource(ResourceType type, int amount, int maxAmount);
 
         virtual ~Resource();
 

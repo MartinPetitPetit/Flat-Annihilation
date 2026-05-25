@@ -208,15 +208,6 @@ void Renderer::drawMap(const MAP &map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& op
 
 					case food:
 						map[x][y].resource->render(this->sdlRenderer, resourceRect);
-
-						if (map[x][y].has_berry == true) {
-							SDL_Surface *surface = IMG_Load("assets/berry.png"); 
-							SDL_Texture *texture = SDL_CreateTextureFromSurface(this->sdlRenderer, surface); 
-							SDL_FreeSurface(surface);
-							SDL_RenderCopy(this->sdlRenderer, texture, NULL, &resourceRect);
-							SDL_DestroyTexture(texture);
-						}
-
 						break;
 
 					default:

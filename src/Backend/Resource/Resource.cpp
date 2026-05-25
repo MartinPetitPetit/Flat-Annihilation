@@ -1,8 +1,10 @@
 #include "Resource.hpp"
 #include <SDL2/SDL_render.h>
 
-Resource::Resource(ResourceType type)
+Resource::Resource(ResourceType type, int amount, int maxAmount)
 {
+	this->amount = amount;
+	this->maxAmount = maxAmount;
 	this->type = type;
 	
 	if (type == wood)
@@ -17,7 +19,8 @@ Resource::Resource(ResourceType type)
         // SDL_FreeSurface(surface);
 	}
 	else if (type == food) {
-		this->surface = IMG_Load("assets/bush.png"); 
+		if (this->amount > 0) this->surface = IMG_Load("assets/berry.png");
+		else this->surface = IMG_Load("assets/bush.png"); 
 	}
 }
 

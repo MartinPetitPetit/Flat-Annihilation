@@ -62,8 +62,6 @@ class Cell
 		Resource *resource;
 		Unit *unit;
 
-		bool has_berry;
-
 		bool walkable;
 		bool occupied;
 };

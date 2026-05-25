@@ -7,8 +7,6 @@ Cell::Cell()
 	this->resource = nullptr;
 	this->unit = nullptr;
 
-	this->has_berry = false;
-
 	this->walkable = true;
 	this->occupied = false;
 }

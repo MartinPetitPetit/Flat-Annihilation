@@ -35,8 +35,7 @@ void place_tree(MAP& map, int x, int y)
     if (!can_place_tree(map, x, y)) {
         return;
     }
-	map[x][y].resource = new Resource(wood);
-    map[x][y].has_berry = false;
+	map[x][y].resource = new Resource(wood, 100, 0);
 }
 
 bool find_forest_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg)

@@ -183,7 +183,6 @@ static void paint_ravine_cell(MAP& map, int x, int y)
 
     set_terrain(map, x, y, ravine);
     map[x][y].resource = nullptr;
-    map[x][y].has_berry = false;
 }
 
 static RavineProfile choose_ravine_profile(const MAP& map)
