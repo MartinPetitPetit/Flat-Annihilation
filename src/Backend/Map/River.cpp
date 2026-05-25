@@ -8,6 +8,8 @@
 #include <queue>
 #include <limits>
 
+
+
 /*
  * ============================================================
  * ORGANIC SPRING-TO-RIVER NETWORK GENERATION
@@ -428,7 +430,7 @@ static bool is_terminal_water(const MAP& map, int x, int y)
 
 static void clear_water_cell(MAP& map, int x, int y)
 {
-    map[x][y].type_resource = None_Resource;
+    map[x][y].resource = nullptr;
     map[x][y].has_berry = false;
 }
 

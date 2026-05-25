@@ -2,16 +2,21 @@
 
 Cell::Cell()
 {
-    type_terrain   = Plain;
-    type_resource  = None_Resource;
-    type_unit      = None_Unit;
-    wood_type      = No_Wood;
-    has_berry      = false;
-    walkable       = true;
-    occupied       = false;
-    buildingID     = -1;
-    buildingOwner  = -1;
-    texture        = nullptr;
+	this->type_terrain = Plain;
+	this->type_struct = None_Struct;
+	this->resource = nullptr;
+	this->unit = nullptr;
+
+	this->has_berry = false;
+
+	this->walkable = true;
+	this->occupied = false;
 }
 
-Cell::~Cell() {}
+Cell::~Cell()
+{
+	if (resource != nullptr) {
+		delete resource;
+	}
+}
+
