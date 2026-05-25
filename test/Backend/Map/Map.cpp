@@ -289,7 +289,7 @@ bool has_terrain_near(const MAP& map, int cx, int cy, TERRAIN terrain, int radiu
 	return false;
 }
 
-bool has_resource_near(const MAP& map, int cx, int cy, Resource resource, int radius)
+bool has_resource_near(const MAP& map, int cx, int cy, ResourceType resource, int radius)
 {
 	// Browse nearby rows.
 	for (int dx = -radius; dx <= radius; dx++) {
