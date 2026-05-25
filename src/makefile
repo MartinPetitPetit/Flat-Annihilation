@@ -41,6 +41,7 @@ srcs  = main.cpp \
 	Backend/Entity/Entity.cpp \
 	Frontend/Sound/Sound.cpp \
 	Backend/Resource/Resource.cpp \
+	Backend/ResourceManager/ResourceManager.cpp \
 	Backend/Unit/Unit.cpp
 
 hdrs  = Game/Game.hpp \
@@ -57,6 +58,7 @@ hdrs  = Game/Game.hpp \
 	Backend/Coordinate/Coordinate.hpp \
 	Frontend/Sound/Sound.hpp \
 	Backend/Unit/Unit.hpp \
+	Backend/ResourceManager/ResourceManager.hpp \
 	Backend/Resource/Resource.hpp
 
 exe   = flat_annihilation

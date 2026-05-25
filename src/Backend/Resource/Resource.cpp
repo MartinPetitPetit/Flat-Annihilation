@@ -1,43 +1,32 @@
 #include "Resource.hpp"
-
+#include "../ResourceManager/ResourceManager.hpp"
+#include <cstdlib>
 
 Resource::Resource(ResourceType type, int amount, int maxAmount)
+    : type(type), amount(amount), maxAmount(maxAmount)
 {
-	this->amount = amount;
-	this->maxAmount = maxAmount;
-	this->type = type;
-	
-	if (type == wood)
-	{
-		int roll = std::rand() % 100;
-		
-		// selection aléatoire du sprite de l'arbre
-		// this->texture = ???
-
-		this->surface = IMG_Load("assets/oak_tree.png"); 
-
-        // SDL_FreeSurface(surface);
-	}
-	else if (type == food) {
-		if (this->amount > 0) this->surface = IMG_Load("assets/berry.png");
-		else this->surface = IMG_Load("assets/bush.png"); 
-	}
+    if (type == wood) {
+        texturePath = "assets/oak_tree.png";
+    }
+    else if (type == food) {
+        if (amount > 0)
+            texturePath = "assets/berry.png";
+        else
+            texturePath = "assets/bush.png";
+    }
 }
-
-Resource::~Resource()
-{
-	SDL_FreeSurface(this->surface);
-	SDL_DestroyTexture(this->texture);
-}
-
 
 ResourceType Resource::getResourceType()
 {
-	return this->type;
+    return type;
 }
 
-void Resource::render(SDL_Renderer *renderer, SDL_Rect destination)
+void Resource::render(SDL_Renderer* renderer, SDL_Rect destination)
 {
-	if (this->texture == nullptr) this->texture = SDL_CreateTextureFromSurface(renderer, this->surface); 
-	SDL_RenderCopy(renderer, this->texture, NULL, &destination);
+    if (texturePath.empty()) return;
+
+    SDL_Texture* tex = ResourceManager::getInstance().getTexture(texturePath);
+    if (!tex) return;
+
+    SDL_RenderCopy(renderer, tex, nullptr, &destination);
 }

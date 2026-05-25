@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include "../../Backend/ResourceManager/ResourceManager.hpp"
 
 Renderer::Renderer(Window& window, const char* font_path)
 {
@@ -6,8 +7,12 @@ Renderer::Renderer(Window& window, const char* font_path)
         window.getSDLWindow(), -1,
         SDL_RENDERER_ACCELERATED
     );
+    ResourceManager::getInstance().setRenderer(sdlRenderer);
+
     font = TTF_OpenFont(font_path, 18);
+
 }
+
 
 Renderer::~Renderer()
 {
