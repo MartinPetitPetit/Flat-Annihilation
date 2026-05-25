@@ -609,8 +609,7 @@ void paint_mountain_brush(MAP& map, int cx, int cy, int thickness)
             }
 
             set_terrain(map, x, y, Montain);
-            map[x][y].type_resource = None_Resource;
-            map[x][y].has_berry = false;
+            map[x][y].resource = nullptr;
         }
     }
 }

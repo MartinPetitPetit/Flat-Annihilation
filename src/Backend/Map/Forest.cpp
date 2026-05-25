@@ -47,10 +47,7 @@ void place_tree(MAP& map, int x, int y, WOOD_TYPE wood_type)
     if (!can_place_tree(map, x, y)) {
         return;
     }
-
-    map[x][y].type_resource = tree;
-    map[x][y].wood_type = wood_type;
-    map[x][y].has_berry = false;
+	map[x][y].resource = new Resource(wood, 100, 0);
 }
 
 bool find_forest_center(const MAP& map, int& x, int& y, const GenerationConfig& cfg)

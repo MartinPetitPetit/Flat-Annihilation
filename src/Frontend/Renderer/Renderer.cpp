@@ -696,19 +696,14 @@ void Renderer::drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
                     drawRect(resourceRect, { 0, 180, 60, 255 }, true);
                     break;
 
-                case BushResource:
-                    /*
-                     * Bushes use the full cell at low zoom.
-                     * Do not use resourceRect here.
-                     */
-                    drawBushModel(cell, map[x][y].has_berry);
-                    break;
+					case food:
+						map[x][y].resource->render(this->sdlRenderer, resourceRect);
+						break;
 
-                case None_Resource:
-                default:
-                    break;
-            }
-
+					default:
+						break;
+				}
+			}
             /*
              * ==================================================
              * PART 3: OPTIONAL GRID
