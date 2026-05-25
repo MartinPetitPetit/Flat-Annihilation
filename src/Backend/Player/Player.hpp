@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include "../Map/Map.hpp"
 #include "../Entity/Entity.hpp"
 #include "../Resource/Resource.hpp"
 #include "../Building/Building.hpp"
@@ -24,7 +26,7 @@ public:
     bool spendWood(int amount);
 
     // Bâtiments
-    bool      placeBuilding(BuildingType type, int mapX, int mapY, MAP& map);
+    bool      placeBuilding(BuildingType type, int mapX, int mapY, MAP map);
     Building* getBuilding(int buildingID) const;
     const std::vector<std::unique_ptr<Building>>& getBuildings() const;
 

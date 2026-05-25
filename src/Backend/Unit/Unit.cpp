@@ -41,10 +41,10 @@ void Unit::render(Renderer* r, int offsetX, int offsetY, int scale) const
 
     // Surbrillance si sélectionné
     if (selected) {
-        r->drawFilledCirclePublic(cx, cy, radius + 3, { 255, 220, 0, 180 });
+        r->drawFilledCircle(cx, cy, radius + 3, { 255, 220, 0, 180 });
     }
 
-    r->drawFilledCirclePublic(cx, cy, radius, body);
+    r->drawFilledCircle(cx, cy, radius, body);
 
     // Barre de vie
     int barW = radius * 2;

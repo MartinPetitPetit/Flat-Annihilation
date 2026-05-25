@@ -1,72 +1,50 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
 #include "../Window/Window.hpp"
 #include "../../Backend/Map/Map.hpp"
 
 class Renderer {
-private:
-    SDL_Renderer* sdlRenderer { nullptr };
-    TTF_Font*     font        { nullptr };
+	public:
+		Renderer(Window& window, const char* font_path);
+		~Renderer();
 
-    int scale   { 8 };
-    int offsetX { 0 };
-    int offsetY { 0 };
+		void clear();
+		void present();
 
-    /*
-     * Internal drawing helpers.
-     */
-    unsigned int hashCell(int x, int y) const;
+		void drawTexture(SDL_Texture* tex, SDL_Rect* src, SDL_Rect* dst);
+		void drawRect(const SDL_Rect& rect, SDL_Color color, bool filled);
+		void drawFilledCircle(int cx, int cy, int radius, SDL_Color color);
+		void drawMap(const MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options);
+		void drawText(const char* text, int x, int y);
+		void updateViewport(int w, int h);
 
-    void drawFilledCircle(int cx, int cy, int radius, SDL_Color color);
+		void applyZoom(int mouseX, int mouseY, int direction);
 
-    void drawTreeModel(const SDL_Rect& cell, WOOD_TYPE wood_type);
-    void drawRoundTree(const SDL_Rect& cell);
-    void drawPineTree(const SDL_Rect& cell);
-    void drawSmallTree(const SDL_Rect& cell);
+		void setOffset(int x, int y);
 
-    void drawLeaf(int cx, int cy, int size, SDL_Color color);
-    void drawBerry(int cx, int cy, int radius);
-    void drawBerryBushModel(const SDL_Rect& cell, bool hasBerry);
+		int getOffsetX() const;
+		int getOffsetY() const;
+		int getScale() const;
 
-    void drawLeafEllipse(
-        int cx,
-        int cy,
-        int rx,
-        int ry,
-        SDL_Color fillColor,
-        SDL_Color veinColor
-    );
+		bool isValid() const;
 
-    void drawBerryCluster(int cx, int cy, int berryRadius);
-    void drawBushModel(const SDL_Rect& cell, bool has_berry);
+		SDL_Renderer* getSDLRenderer() const;
+		TTF_Font* getFont() const;
+	private:
+		SDL_Renderer* sdlRenderer { nullptr };
+		TTF_Font*     font        { nullptr };
 
-public:
-    Renderer(Window& window, const char* font_path);
-    ~Renderer();
+		int scale   { 8 };
+		int offsetX { 0 };
+		int offsetY { 0 };
 
-    void clear();
-    void present();
-
-    void drawTexture(SDL_Texture* tex, SDL_Rect* src, SDL_Rect* dst);
-    void drawRect(const SDL_Rect& rect, SDL_Color color, bool filled);
-    void drawFilledCirclePublic(int cx, int cy, int radius, SDL_Color color);
-    void drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options);
-    void drawText(const char* text, int x, int y);
-    void updateViewport(int w, int h);
-
-    void applyZoom(int mouseX, int mouseY, int direction);
-
-    void setOffset(int x, int y);
-
-    int getOffsetX() const;
-    int getOffsetY() const;
-    int getScale() const;
-
-    bool isValid() const;
-
-    SDL_Renderer* getSDLRenderer() const;
-    TTF_Font* getFont() const;
+		/*
+		* Internal drawing helpers.
+		*/
+		unsigned int hashCell(int x, int y) const;
 };
 
 

@@ -24,7 +24,10 @@ const MAP& Map::getGrid() const
 };
 
 
-
+ MAP Map::setGrid()
+{
+	return this->grid;
+};
 
 
 /*

@@ -50,6 +50,7 @@ class Map
 		};
 
 		const MAP& getGrid() const;
+		MAP setGrid();
 
 	private:
 		MAP grid;

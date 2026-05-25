@@ -1,6 +1,6 @@
-#include <iostream>
+
 #include "Player.hpp"
-#include "../Map/Map.hpp"
+
 
 Player::Player()
 {
@@ -31,7 +31,7 @@ bool Player::spendWood(int amount)
     return true;
 }
 
-bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP& map)
+bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP map)
 {
     const BuildingDef& def = getBuildingDef(type);
 
@@ -47,7 +47,7 @@ bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP& map)
             if (y < 0 || y >= (int)map[0].size())           { addWood(def.costWood); return false; }
             if (map[x][y].type_terrain != Plain)             { addWood(def.costWood); return false; }
             if (map[x][y].buildingID != -1)                  { addWood(def.costWood); return false; }
-            if (map[x][y].type_resource != None_Resource)    { addWood(def.costWood); return false; }
+            if (map[x][y].resource != nullptr)    { addWood(def.costWood); return false; }
         }
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL2/SDL_image.h>
+
 enum ResourceType {food, wood, stone, gold};
 
 
@@ -8,9 +10,6 @@ class Resource
 {
 
     public:
-        Resource();
-        virtual ~Resource();
-
 
 		Resource(ResourceType type, int amount, int maxAmount);
 

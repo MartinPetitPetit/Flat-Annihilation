@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL2/SDL_image.h>
 #include "../Resource/Resource.hpp"
-Class Unit; // forward declaration to avoid circular dependency
+class Unit; // forward declaration to avoid circular dependency
 
 enum TERRAIN {
     Plain,
@@ -20,8 +20,8 @@ public:
     virtual ~Cell();
 
     TERRAIN   type_terrain;
-    Resource  resource;
-    Unit      unit;
+    Resource  *resource;
+    Unit      *unit;
     
     bool walkable;
     bool occupied;
