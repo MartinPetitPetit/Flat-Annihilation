@@ -39,6 +39,11 @@ void Renderer::drawRect(const SDL_Rect& rect, SDL_Color color, bool filled)
     else        SDL_RenderDrawRect(sdlRenderer, &rect);
 }
 
+void Renderer::drawFilledCirclePublic(int cx, int cy, int radius, SDL_Color color)
+{
+    drawFilledCircle(cx, cy, radius, color);
+}
+
 void Renderer::drawFilledCircle(int cx, int cy, int radius, SDL_Color color)
 {
     if (radius <= 0) {

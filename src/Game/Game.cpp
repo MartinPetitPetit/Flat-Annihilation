@@ -18,7 +18,8 @@ Game::Game()
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer, *ptr_window);
     ptr_selectionManager = std::make_unique<SelectionManager>();
-    ptr_eventManager = std::make_unique<EventManager>(*ptr_selectionManager, *ptr_renderer, *ptr_uiManager);
+    ptr_eventManager = std::make_unique<EventManager>(
+    *ptr_selectionManager, *ptr_renderer, *ptr_uiManager, ptr_units);
 }
 
 Game::~Game()
@@ -45,6 +46,11 @@ void Game::startGame()
 
     this->ptr_map = std::make_unique<MAP>(create_map(MAP_W, MAP_H));
     generate_map(*ptr_map);
+
+    // Unités de test : quelques soldats bleus et rouges
+    ptr_units.push_back(std::make_unique<Unit>(0, 0, MAP_W/2,     MAP_H/2));
+    ptr_units.push_back(std::make_unique<Unit>(1, 0, MAP_W/2 + 2, MAP_H/2));
+    ptr_units.push_back(std::make_unique<Unit>(2, 1, MAP_W/2 + 5, MAP_H/2 + 3));
 
     // Joueur humain
     this->ptr_players.push_back(std::make_unique<Player>());
@@ -132,6 +138,12 @@ void Game::run()
         for (auto& p : ptr_players) rawPlayers.push_back(p.get());
 
         this->ptr_renderer->drawMap(*ptr_map, MAP_W, MAP_H, options);
+                // Rendu des unités
+        for (auto& u : ptr_units)
+            u->render(ptr_renderer.get(),
+                    ptr_renderer->getOffsetX(),
+                    ptr_renderer->getOffsetY(),
+                    ptr_renderer->getScale());
         this->ptr_uiManager->renderBuildings(*ptr_map, rawPlayers,
             ptr_renderer->getScale(),
             ptr_renderer->getOffsetX(),
@@ -149,7 +161,10 @@ void Game::run()
                 ptr_renderer->getOffsetY());
         }
 
-        this->ptr_uiManager->renderHUD(ptr_players.empty() ? nullptr : ptr_players[0].get());
+        this->ptr_uiManager->renderHUD(
+    ptr_players.empty() ? nullptr : ptr_players[0].get(),
+    ptr_selectionManager->getSelected()
+);
         this->ptr_renderer->present();
             lastFrame = frameNow;
             frameCount++;  // ← compter les frames

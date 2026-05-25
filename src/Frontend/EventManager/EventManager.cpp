@@ -1,25 +1,10 @@
-/*-SDL_Event event
-
--SelectionManager* selMgr
-
--bool quit
-
-+EventManager(selMgr SelectionManager&)
-
-+pollEvents() : void
-
-+isQuit() : bool
-
--onMouseDown(x,y,btn) : void
-
--onMouseUp(x,y,btn) : void
-
--onKeyDown(key) : void*/
-
 #include "EventManager.hpp"
+#include <algorithm>
 
-EventManager::EventManager(SelectionManager& s, Renderer& r, UIManager& u)
-    : selMgr(&s), renderer(&r), uiManager(&u) {}
+EventManager::EventManager(SelectionManager& s, Renderer& r,
+                           UIManager& u,
+                           std::vector<std::unique_ptr<Unit>>& unitList)
+    : selMgr(&s), renderer(&r), uiManager(&u), units(&unitList) {}
 
 void EventManager::pollEvents()
 {
@@ -57,10 +42,7 @@ void EventManager::onMouseDown(int x, int y, int btn)
     if (btn == SDL_BUTTON_LEFT) {
         if (uiManager->handleHUDClick(x, y)) return;
 
-        // Mode placement bâtiment
         if (uiManager->isInBuildingMode()) {
-            // Le placement réel est délégué à Game via un flag
-            // On notifie juste via un membre dédié
             pendingBuildX = x;
             pendingBuildY = y;
             pendingBuild  = true;
@@ -79,11 +61,18 @@ void EventManager::onMouseDown(int x, int y, int btn)
         dragStartOffsetY = renderer->getOffsetY();
     }
 }
+
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        std::vector<Unit*> allUnits;
-        selMgr->endDrag(x, y, allUnits);
+        // Collecter les raw pointers
+        std::vector<Unit*> rawUnits;
+        for (auto& u : *units) rawUnits.push_back(u.get());
+
+        selMgr->endDrag(x, y, rawUnits,
+                        renderer->getOffsetX(),
+                        renderer->getOffsetY(),
+                        renderer->getScale());
     }
     if (btn == SDL_BUTTON_RIGHT)
         dragging = false;
@@ -109,4 +98,8 @@ void EventManager::onMouseWheel(int x, int y, int direction)
 void EventManager::onKeyDown(SDL_Keycode key)
 {
     if (key == SDLK_ESCAPE) quit = true;
+
+    if (key == SDLK_DELETE || key == SDLK_KP_PERIOD) {
+        selMgr->deleteSelected(*units);
+    }
 }

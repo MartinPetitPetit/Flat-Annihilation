@@ -271,7 +271,7 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 }
 
 
-void UIManager::renderHUD(const Player* localPlayer)
+void UIManager::renderHUD(const Player* localPlayer, const std::vector<Unit*>& selectedUnits)
 {
     int w = window->getOptions().width;
 
@@ -320,15 +320,40 @@ void UIManager::renderHUD(const Player* localPlayer)
     drawHUDRect(stopRect, { 120, 0, 0, 180 }, borderRed);
     drawHUDText("stop", stopRect.x + 18, stopRect.y + 7, { 255, 60, 60, 255 });
 
-    // --- Panneau sélection ---
-    SDL_Rect selRect = getHUDSelectionRect();
-    drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
-    drawHUDText("selected units", selRect.x + 8, selRect.y + 8,  { 200, 200, 200, 255 });
-    drawHUDText("summary",        selRect.x + 8, selRect.y + 30, { 150, 150, 150, 255 });
-    SDL_Rect iconPlaceholder = { selRect.x + 8, selRect.y + 55, selRect.w - 16, selRect.h - 65 };
-    drawHUDRect(iconPlaceholder, { 30, 30, 60, 120 }, { 80, 80, 120, 255 });
-    drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
+// --- Panneau sélection ---
+SDL_Rect selRect = getHUDSelectionRect();
+drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
+drawHUDText("selected units", selRect.x + 8, selRect.y + 8, { 200, 200, 200, 255 });
 
+if (selectedUnits.empty()) {
+    drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
+} else {
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%d unit(s)", (int)selectedUnits.size());
+    drawHUDText(buf, selRect.x + 8, selRect.y + 28, { 200, 220, 255, 255 });
+
+    int iconSize = 36;
+    int cols     = (selRect.w - 16) / (iconSize + 4);
+    for (int i = 0; i < (int)selectedUnits.size() && i < 8; i++) {
+        const Unit* u = selectedUnits[i];
+        int col = i % cols;
+        int row = i / cols;
+        SDL_Rect icon = {
+            selRect.x + 8 + col * (iconSize + 4),
+            selRect.y + 50 + row * (iconSize + 4),
+            iconSize, iconSize
+        };
+        SDL_Color fill = (u->getTeam() == 0)
+            ? SDL_Color{ 30, 60, 180, 200 }
+            : SDL_Color{ 180, 30, 30, 200 };
+        drawHUDRect(icon, fill, { 255, 220, 0, 255 });
+
+        // HP
+        char hp[8];
+        snprintf(hp, sizeof(hp), "%d", u->getHealth());
+        drawHUDText(hp, icon.x + 4, icon.y + icon.h - 16, { 220, 220, 220, 255 });
+    }
+}
     // --- Building bar ---
     SDL_Rect buildRect = getHUDBuildingRect();
     drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);

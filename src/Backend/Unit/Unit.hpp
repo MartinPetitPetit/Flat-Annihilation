@@ -4,44 +4,27 @@
 #include "../Entity/Entity.hpp"
 #include "../Map/Map.hpp"
 #include "../Resource/Resource.hpp"
-#include "../../Frontend/Renderer/Renderer.hpp"
 
+class Renderer;
 
-class Unit : Entity
+class Unit : public Entity
 {
-	public:
-		Unit(int type, int x, int y, Player player);
-		virtual ~Unit();
+public:
+    Unit(int id, int team, int x, int y);
+    virtual ~Unit();
 
-		void moveTo(int x, int y,Map map);
+    void moveTo(int x, int y);
+    virtual void update() override;
+	void update(float dt);	
+	void updateDt(float dt);
+    void render(Renderer* renderer, int offsetX, int offsetY, int scale) const;
 
-		void gather(C_Resource *Resource);
+    bool isSelected() const;
+    void setSelected(bool sel);
 
-		void update(float dt);
+    // Rayon visuel en cellules (demi-taille du sprite)
+    static constexpr int RADIUS = 6; // pixels à l'échelle 1
 
-		void render(Renderer *Renderer);
-
-		// const UnitStats *getStats();
-
-
-	private:
-
-		// UnitStats stats;
-
-		C_Resource* gatherTarget;
-		int carriedAmount;
-
-		void resolveAttack(float dt);
-		void resolveGather(float dt);
-
-
-	protected:
-
-
+private:
+    bool selected { false };
 };
-
-// -vector<Vector2f> path
-// -Entity* target
-// -PathFinder* pathfinder
-// +attackTarget(e Entity*) : void
-// -followPath(dt) : void

@@ -20,6 +20,7 @@ public:
 
     int getId()   const;
     int getTeam() const;
+    int getHealth() const { return health; }
 
 protected:
     int        id       { 0       };

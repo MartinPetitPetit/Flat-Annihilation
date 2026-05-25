@@ -50,6 +50,7 @@ public:
 
     void drawTexture(SDL_Texture* tex, SDL_Rect* src, SDL_Rect* dst);
     void drawRect(const SDL_Rect& rect, SDL_Color color, bool filled);
+    void drawFilledCirclePublic(int cx, int cy, int radius, SDL_Color color);
     void drawMap(MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options);
     void drawText(const char* text, int x, int y);
     void updateViewport(int w, int h);

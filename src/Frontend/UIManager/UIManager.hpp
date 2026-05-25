@@ -5,6 +5,7 @@
 #include "../../Backend/Building/Building.hpp"
 #include "../Sound/Sound.hpp"
 #include "../../Backend/Player/Player.hpp"
+#include "../../Backend/Unit/Unit.hpp"
 
 class UIManager {
     Renderer* renderer { nullptr };
@@ -30,7 +31,8 @@ public:
     BuildingType getSelectedBuildingType() const;
     void cancelBuildingMode();
 
-    void renderHUD(const Player* localPlayer);
+void renderHUD(const Player* localPlayer,
+               const std::vector<Unit*>& selectedUnits = {});
     void renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
                              int scale, int offsetX, int offsetY);
     void renderBuildings(const MAP& map, const std::vector<Player*>& players,
