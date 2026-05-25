@@ -20,7 +20,7 @@ bool can_place_bush(const MAP& map, int x, int y)
     }
 
     // Avoid replacing resources.
-    if (map[x][y].type_resource != None_Resource) {
+    if (map[x][y].resource != nullptr) {
         return false;
     }
 
@@ -170,7 +170,7 @@ void create_scattered_bushes(MAP& map, const GenerationConfig& cfg)
                 chance += cfg.near_water_bush_bonus;
             }
 
-            if (has_resource_near(map, x, y, BushResource, 3)) {
+            if (has_resource_near(map, x, y, food, 3)) {
                 chance += 2;
             }
 
