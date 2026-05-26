@@ -42,7 +42,8 @@ srcs  = main.cpp \
 	Frontend/Sound/Sound.cpp \
 	Backend/Resource/Resource.cpp \
 	Backend/ResourceManager/ResourceManager.cpp \
-	Backend/Unit/Unit.cpp
+	Backend/Unit/Unit.cpp \
+	Backend/Map/Pathfinding.cpp
 
 hdrs  = Game/Game.hpp \
 	Frontend/Window/Window.hpp \

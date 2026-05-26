@@ -53,6 +53,19 @@ void EventManager::onMouseDown(int x, int y, int btn)
     }
 
     if (btn == SDL_BUTTON_RIGHT) {
+        // Si des unités sont sélectionnées → ordre de déplacement
+        if (!selMgr->getSelected().empty()) {
+            // Convertir position écran → cellule
+            int cellX = (x - renderer->getOffsetX()) / renderer->getScale();
+            int cellY = (y - renderer->getOffsetY()) / renderer->getScale();
+
+            pendingMoveX = cellX;
+            pendingMoveY = cellY;
+            pendingMove  = true;
+            return;
+        }
+
+        // Sinon → déplacer la caméra
         uiManager->cancelBuildingMode();
         dragging         = true;
         dragStartX       = x;

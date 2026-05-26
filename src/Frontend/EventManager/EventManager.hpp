@@ -31,6 +31,10 @@ public:
     int  pendingBuildX { 0     };
     int  pendingBuildY { 0     };
     void consumeBuild() { pendingBuild = false; }
+    bool pendingMove  { false };
+    int  pendingMoveX { 0     };
+    int  pendingMoveY { 0     };
+    void consumeMove() { pendingMove = false; }
 
 private:
     void onMouseDown(int x, int y, int btn);

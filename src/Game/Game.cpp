@@ -106,7 +106,27 @@ void Game::run()
             ptr_uiManager->cancelBuildingMode();
             ptr_eventManager->consumeBuild();
         }
+        // Ordre de déplacement
+        if (ptr_eventManager->pendingMove) {
+            int mx = ptr_eventManager->pendingMoveX;
+            int my = ptr_eventManager->pendingMoveY;
 
+            std::vector<Unit*>& sel = ptr_selectionManager->getSelected();
+            int count = static_cast<int>(sel.size());
+
+            // Calcul des destinations en formation
+            std::vector<Coordinate> dests = formationDestinations(
+                ptr_map->setGrid(), Coordinate(mx, my), count);
+
+            for (int i = 0; i < count; i++) {
+                Coordinate dest = (i < static_cast<int>(dests.size()))
+                                ? dests[i]
+                                : Coordinate(mx, my);
+                sel[i]->setDestination(dest, ptr_map->setGrid(), ptr_units);
+            }
+
+            ptr_eventManager->consumeMove();
+        }
         // Gestion pause via clic HUD (intercepté avant EventManager pour les boutons)
         // Note : le clic HUD est géré dans EventManager via handleHUDClick
 
@@ -198,6 +218,10 @@ void Game::run()
 void Game::update()
 {
     currentTick++;
+
+    // Déplacement des unités
+    for (auto& u : ptr_units)
+    u->updateMove(ptr_map->setGrid(), ptr_units, TICK_RATE);
 
     // -- Chaque tick : déplacements, collisions, etc.
     // ptr_map->update(currentTick);  // TODO
