@@ -62,6 +62,7 @@ void Unit::updateMove(MAP& map,
         const Cell& c = map[nx][ny];
         if (c.type_terrain == Montain ||
             c.type_terrain == Lake    ||
+            c.type_terrain == River   ||
             c.type_terrain == ravine  ||
             c.buildingID   != -1)
             blocked = true;

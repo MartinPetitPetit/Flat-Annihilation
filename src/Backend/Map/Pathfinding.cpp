@@ -25,6 +25,7 @@ static bool cell_walkable(const MAP& map,
     // Terrain infranchissable
     if (c.type_terrain == Montain ||
         c.type_terrain == Lake    ||
+        c.type_terrain == River   ||
         c.type_terrain == ravine)
         return false;
 
@@ -33,14 +34,13 @@ static bool cell_walkable(const MAP& map,
 
     // Unité présente (sauf soi-même, sauf destination)
     if (c.unit != nullptr) {
-        if (x == goal.getX() && y == goal.getY()) return true; // on accepte la dest
+        if (x == goal.getX() && y == goal.getY()) return true;
         if (c.unit->getId() == selfId) return true;
         return false;
     }
 
     return true;
 }
-
 struct AStarNode {
     int x, y;
     float f, g;

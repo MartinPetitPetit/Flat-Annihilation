@@ -47,10 +47,12 @@ void Game::startGame()
     // Unités de test : quelques soldats bleus et rouges
     for (int i = 0; i < 15; i++){
         ptr_units.push_back(std::make_unique<Unit>(2, 1, MAP_W/2 + 5, MAP_H/2 + i));
+        int x = MAP_W/2 + 5;
+        int y = MAP_H/2 + i;
+        if (in_map(ptr_map->data(), x, y))
+            ptr_map->data()[x][y].unit = ptr_units.back().get();
     }
-    
-
-    // Joueur humain
+        // Joueur humain
     this->ptr_players.push_back(std::make_unique<Player>());
 
     // Joueurs IA
