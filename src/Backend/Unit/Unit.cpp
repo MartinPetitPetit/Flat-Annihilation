@@ -46,7 +46,7 @@ void Unit::updateMove(MAP& map,
 
     // 1 case / seconde → on avance toutes les tickRate ticks
     ticksWaited++;
-    if (ticksWaited < tickRate) return;
+    if (ticksWaited < (tickRate/5)) return;
     ticksWaited = 0;
 
     Coordinate next = path.front();

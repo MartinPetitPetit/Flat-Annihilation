@@ -6,6 +6,7 @@
 #include "../Unit/Unit.hpp"
 #include "../Resource/Resource.hpp"
 #include <memory>
+#include "../Coordinate/Coordinate.hpp"
 
 /*
  * ============================================================
@@ -51,7 +52,7 @@ class Map
 		};
 
 		const MAP& getGrid() const;
-		MAP setGrid();
+		MAP& setGrid();
 
 	private:
 		MAP grid;

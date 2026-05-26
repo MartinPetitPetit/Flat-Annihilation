@@ -1,13 +1,15 @@
 #pragma once
 
-#include "../Player/Player.hpp"
 #include "../Entity/Entity.hpp"
-#include "../Map/Map.hpp"
+#include "../Coordinate/Coordinate.hpp"
 #include "../Resource/Resource.hpp"
 #include <vector>
 #include <memory>
 
+// Forward declarations pour casser la circularité
 class Renderer;
+class Player;
+using MAP = std::vector<std::vector<class Cell>>;
 
 class Unit : public Entity
 {
@@ -17,7 +19,6 @@ public:
 
     void moveTo(int x, int y);
     virtual void update() override;
-    void update(float dt);
     void updateDt(float dt);
     void updateMove(MAP& map,
                     const std::vector<std::unique_ptr<Unit>>& allUnits,
@@ -42,6 +43,6 @@ private:
     std::vector<Coordinate> path;
     Coordinate              destination   { -1, -1 };
     bool                    hasTarget     { false   };
-    int                     ticksWaited   { 0       }; // compteur depuis dernier déplacement
-    int                     waitBlocked   { 0       }; // compteur de ticks bloqués
+    int                     ticksWaited   { 0       };
+    int                     waitBlocked   { 0       };
 };

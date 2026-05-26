@@ -45,9 +45,10 @@ void Game::startGame()
     this->ptr_map = std::make_unique<Map>(MAP_W, MAP_H);
 
     // Unités de test : quelques soldats bleus et rouges
-    ptr_units.push_back(std::make_unique<Unit>(0, 0, MAP_W/2,     MAP_H/2));
-    ptr_units.push_back(std::make_unique<Unit>(1, 0, MAP_W/2 + 2, MAP_H/2));
-    ptr_units.push_back(std::make_unique<Unit>(2, 1, MAP_W/2 + 5, MAP_H/2 + 3));
+    for (int i = 0; i < 15; i++){
+        ptr_units.push_back(std::make_unique<Unit>(2, 1, MAP_W/2 + 5, MAP_H/2 + i));
+    }
+    
 
     // Joueur humain
     this->ptr_players.push_back(std::make_unique<Player>());
