@@ -104,8 +104,8 @@ void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool
 
 int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 {
-    const int   N      = 4;
-    const char* labels[N] = { "generate map", "solo vs ia", "multiplayer", "options" };
+    const int   N      = 3;
+    const char* labels[N] = { "generate map", "solo vs ia", "options" };
     int btnW = 320, btnH = 50;
 	SDL_Rect rects[N]; // sera recalculé à chaque frame
 
@@ -130,7 +130,7 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
                 if (ev.key.keysym.sym == SDLK_UP)    { sel--; if (sel < 0) sel = N-1; }
                 if (ev.key.keysym.sym == SDLK_DOWN)  { sel++; if (sel >= N) sel = 0; }
                 if (ev.key.keysym.sym == SDLK_RETURN) {
-                    if (sel == 3) { showOptionsMenu(options, sound); }
+                    if (sel == 2) { showOptionsMenu(options, sound); }
                     else { result = sel; isOpen = false; }
                 }
                 if (ev.key.keysym.sym == SDLK_ESCAPE) isOpen = false;
@@ -152,7 +152,7 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
                         if (mx >= rects[i].x && mx <= rects[i].x + rects[i].w &&
                             my >= rects[i].y && my <= rects[i].y + rects[i].h) {
                             sound.play("click");
-                            if (i == 3) showOptionsMenu(options, sound);
+                            if (i == 2) showOptionsMenu(options, sound);
                             else { result = i; isOpen = false; }
                         }
                     }
@@ -174,9 +174,16 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 {
     const int RES_COUNT = 5;
-    const char* res_labels[RES_COUNT] = { "200x200","800x600","1280x720","1920x1080","2560x1440" };
     const int   res_w[RES_COUNT]      = { 600, 800, 1280, 1920, 2560 };
     const int   res_h[RES_COUNT]      = { 600, 600,  720, 1080, 1440 };
+    SDL_DisplayMode displayMode;
+    if (options.fullscreen && SDL_GetDesktopDisplayMode(0, &displayMode) == 0) {
+        options.width      = displayMode.w;
+        options.height     = displayMode.h;
+    } else {
+        SDL_Log("Erreur: %s", SDL_GetError());
+    }
+
 
     int currentRes = 0;
     for (int i = 0; i < RES_COUNT; i++)
@@ -254,7 +261,7 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 
             // Valeur à droite
             char val[64] = "";
-            if (i==0) snprintf(val, sizeof(val), " %s ", res_labels[currentRes]);
+            if (i==0) snprintf(val, sizeof(val), " %dx%d ", res_w[currentRes], res_h[currentRes]);
             if (i==1) snprintf(val, sizeof(val), " %s ", fullscreen ? "on" : "off");
             if (val[0]) {
                 SDL_Color cyan = { 0, 220, 255, 255 };
@@ -320,40 +327,40 @@ void UIManager::renderHUD(const Player* localPlayer, const std::vector<Unit*>& s
     drawHUDRect(stopRect, { 120, 0, 0, 180 }, borderRed);
     drawHUDText("stop", stopRect.x + 18, stopRect.y + 7, { 255, 60, 60, 255 });
 
-// --- Panneau sélection ---
-SDL_Rect selRect = getHUDSelectionRect();
-drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
-drawHUDText("selected units", selRect.x + 8, selRect.y + 8, { 200, 200, 200, 255 });
+    // --- Panneau sélection ---
+    SDL_Rect selRect = getHUDSelectionRect();
+    drawHUDRect(selRect, { 10, 10, 30, 180 }, borderWhite);
+    drawHUDText("selected units", selRect.x + 8, selRect.y + 8, { 200, 200, 200, 255 });
 
-if (selectedUnits.empty()) {
-    drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
-} else {
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%d unit(s)", (int)selectedUnits.size());
-    drawHUDText(buf, selRect.x + 8, selRect.y + 28, { 200, 220, 255, 255 });
+    if (selectedUnits.empty()) {
+        drawHUDText("(empty)", selRect.x + 90, selRect.y + 90, { 80, 80, 100, 255 });
+    } else {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%d unit(s)", (int)selectedUnits.size());
+        drawHUDText(buf, selRect.x + 8, selRect.y + 28, { 200, 220, 255, 255 });
 
-    int iconSize = 36;
-    int cols     = (selRect.w - 16) / (iconSize + 4);
-    for (int i = 0; i < (int)selectedUnits.size() && i < 8; i++) {
-        const Unit* u = selectedUnits[i];
-        int col = i % cols;
-        int row = i / cols;
-        SDL_Rect icon = {
-            selRect.x + 8 + col * (iconSize + 4),
-            selRect.y + 50 + row * (iconSize + 4),
-            iconSize, iconSize
-        };
-        SDL_Color fill = (u->getTeam() == 0)
-            ? SDL_Color{ 30, 60, 180, 200 }
-            : SDL_Color{ 180, 30, 30, 200 };
-        drawHUDRect(icon, fill, { 255, 220, 0, 255 });
+        int iconSize = 36;
+        int cols     = (selRect.w - 16) / (iconSize + 4);
+        for (int i = 0; i < (int)selectedUnits.size() && i < 8; i++) {
+            const Unit* u = selectedUnits[i];
+            int col = i % cols;
+            int row = i / cols;
+            SDL_Rect icon = {
+                selRect.x + 8 + col * (iconSize + 4),
+                selRect.y + 50 + row * (iconSize + 4),
+                iconSize, iconSize
+            };
+            SDL_Color fill = (u->getTeam() == 0)
+                ? SDL_Color{ 30, 60, 180, 200 }
+                : SDL_Color{ 180, 30, 30, 200 };
+            drawHUDRect(icon, fill, { 255, 220, 0, 255 });
 
-        // HP
-        char hp[8];
-        snprintf(hp, sizeof(hp), "%d", u->getHealth());
-        drawHUDText(hp, icon.x + 4, icon.y + icon.h - 16, { 220, 220, 220, 255 });
+            // HP
+            char hp[8];
+            snprintf(hp, sizeof(hp), "%d", u->getHealth());
+            drawHUDText(hp, icon.x + 4, icon.y + icon.h - 16, { 220, 220, 220, 255 });
+        }
     }
-}
     // --- Building bar ---
     SDL_Rect buildRect = getHUDBuildingRect();
     drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
@@ -471,9 +478,10 @@ void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool ful
     options.width      = w;
     options.height     = h;
     options.fullscreen = fullscreen;
-    window->resize(w, h);
-    if (fsChanged)
-        window->setFullscreen(fullscreen);
-    renderer->updateViewport(w, h);
+
+    if (fsChanged) window->setFullscreen(fullscreen);
+
+    window->resize(options.width, options.height);
+    renderer->updateViewport(options.width, options.height);
     printf("après resize, window dit : %dx%d\n", window->getOptions().width, window->getOptions().height); // ← debug
 }

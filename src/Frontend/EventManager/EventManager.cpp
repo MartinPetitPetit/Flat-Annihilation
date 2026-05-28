@@ -1,5 +1,4 @@
 #include "EventManager.hpp"
-#include <algorithm>
 
 EventManager::EventManager(SelectionManager& s, Renderer& r,
                            UIManager& u,

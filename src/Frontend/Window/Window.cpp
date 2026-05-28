@@ -43,13 +43,13 @@ bool            Window::isValid()      const { return sdlWindow != nullptr; }
 void Window::setFullscreen(bool fs)
 {
     options.fullscreen = fs;
-    SDL_SetWindowFullscreen(sdlWindow, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    SDL_SetWindowFullscreen(this->sdlWindow, (this->options.fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 void Window::resize(int width, int height)
 {
     printf("Window::resize appelé : %dx%d\n", width, height); // ← debug
     options.width  = width;
     options.height = height;
-    SDL_SetWindowSize(sdlWindow, width, height);
-    SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_SetWindowSize(this->sdlWindow, this->options.width, this->options.height);
+    SDL_SetWindowPosition(this->sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }

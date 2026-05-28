@@ -1,11 +1,12 @@
 #include "Game.hpp"
+#include <iostream>
 
 Game::Game()
 {
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
-
+    
 	ptr_sound = std::make_unique<Sound>();
 	ptr_sound->load("click",  "sounds/rhoo.wav");
 	ptr_sound->load("hover",  "sounds/ptiou.wav");	
