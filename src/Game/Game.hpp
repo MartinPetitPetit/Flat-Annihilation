@@ -13,7 +13,6 @@
 #include "../Backend/Player/Player.hpp"
 #include "../Backend/Unit/Unit.hpp"
 #include "../Frontend/Sound/Sound.hpp"
-#include "../Backend/Pathing/MassPath.hpp"
 
 static constexpr int   TICK_RATE    { 10   };
 static constexpr float TICK_DELAY   { 1000.0f / TICK_RATE };
@@ -49,7 +48,6 @@ class Game
 		int    MAP_W   { 0     };
 		int    MAP_H   { 0     };
 		bool   running { false };
-		float  productionAccumulator { 0.0f };
 		int    hudFPS  { 0     };
 		int    hudTPS  { 0     };
 		Uint64 currentTick { 0 };

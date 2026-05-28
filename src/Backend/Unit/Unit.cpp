@@ -1,159 +1,16 @@
 #include "Unit.hpp"
-
-#include "../Map/Map.hpp"
-#include "../Pathing/MassPath.hpp"
 #include "../../Frontend/Renderer/Renderer.hpp"
-
-#include <algorithm>
-#include <array>
-#include <limits>
-
-namespace
-{
-    int distance2(Coordinate a, Coordinate b)
-    {
-        int dx = a.getX() - b.getX();
-        int dy = a.getY() - b.getY();
-
-        return dx * dx + dy * dy;
-    }
-
-    bool isFreeCell(const MAP& map, int x, int y, const Unit* self)
-    {
-        if (!in_map(map, x, y)) {
-            return false;
-        }
-
-        const Cell& cell = map[x][y];
-
-        if (!cell.walkable) {
-            return false;
-        }
-
-        if (cell.type_terrain == Montain ||
-            cell.type_terrain == Lake ||
-            cell.type_terrain == River ||
-            cell.type_terrain == ravine) {
-            return false;
-            }
-
-            if (cell.buildingID != -1) {
-                return false;
-            }
-
-            if (cell.unit != nullptr && cell.unit != self) {
-                return false;
-            }
-
-            return true;
-    }
-
-    bool canMoveToNeighbour(
-        const MAP& map,
-        const Unit* self,
-        Coordinate current,
-        int dx,
-        int dy
-    )
-    {
-        int nx = current.getX() + dx;
-        int ny = current.getY() + dy;
-
-        if (!isFreeCell(map, nx, ny, self)) {
-            return false;
-        }
-
-        if (dx != 0 && dy != 0) {
-            bool sideA = isFreeCell(
-                map,
-                current.getX() + dx,
-                                    current.getY(),
-                                    self
-            );
-
-            bool sideB = isFreeCell(
-                map,
-                current.getX(),
-                                    current.getY() + dy,
-                                    self
-            );
-
-            if (!sideA && !sideB) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool chooseNeighbour(
-        const MAP& map,
-        const Unit* self,
-        Coordinate current,
-        Coordinate target,
-        Coordinate& next
-    )
-    {
-        static const std::array<std::array<int, 2>, 8> directions {{
-            {{ 1,  0}},
-            {{-1,  0}},
-            {{ 0,  1}},
-            {{ 0, -1}},
-            {{ 1,  1}},
-            {{ 1, -1}},
-            {{-1,  1}},
-            {{-1, -1}}
-        }};
-
-        int currentDistance = distance2(current, target);
-
-        bool found = false;
-        int bestDistance = std::numeric_limits<int>::max();
-
-        for (const auto& direction : directions) {
-            int dx = direction[0];
-            int dy = direction[1];
-
-            if (!canMoveToNeighbour(map, self, current, dx, dy)) {
-                continue;
-            }
-
-            Coordinate candidate(
-                current.getX() + dx,
-                                 current.getY() + dy
-            );
-
-            int candidateDistance = distance2(candidate, target);
-
-            if (candidateDistance >= currentDistance) {
-                continue;
-            }
-
-            if (!found || candidateDistance < bestDistance) {
-                found = true;
-                bestDistance = candidateDistance;
-                next = candidate;
-            }
-        }
-
-        return found;
-    }
-}
 
 Unit::Unit(int id, int team, int x, int y)
 {
-    this->id = id;
+    this->id   = id;
     this->team = team;
-
-    position.setX(x);
-    position.setY(y);
-
-    health = 100;
+    this->position.setX(x);
+    this->position.setY(y);
+    this->health = 100;
 }
 
-Unit::~Unit()
-{
-}
+Unit::~Unit() {}
 
 void Unit::moveTo(int x, int y)
 {
@@ -161,116 +18,93 @@ void Unit::moveTo(int x, int y)
     position.setY(y);
 }
 
-void Unit::update()
-{
-}
+void Unit::updateDt(float dt) { (void)dt; }
 
-void Unit::updateDt(float dt)
-{
-    (void)dt;
-}
+bool Unit::isSelected()      const { return selected; }
+void Unit::setSelected(bool sel)   { selected = sel;  }
 
-bool Unit::isSelected() const
-{
-    return selected;
-}
+// ---------- Destination & pathfinding ----------
 
-void Unit::setSelected(bool sel)
+void Unit::setDestination(Coordinate dest,
+                           MAP& map,
+                           const std::vector<std::unique_ptr<Unit>>& allUnits)
 {
-    selected = sel;
-}
-
-void Unit::setDestination(
-    Coordinate dest,
-    MAP& map,
-    const std::vector<std::unique_ptr<Unit>>& allUnits
-)
-{
-    (void)map;
-    (void)allUnits;
-
     destination = dest;
-    hasTarget = true;
-    ticksWaited = 0;
+    hasTarget   = true;
     waitBlocked = 0;
-    path.clear();
+    ticksWaited = 0;
+    path = findPath(map, position, destination, allUnits, id);
 }
 
-void Unit::updateMove(
-    MAP& map,
-    const std::vector<std::unique_ptr<Unit>>& allUnits,
-    int tickRate
-)
+// ---------- Mouvement (appelé par Game::update) ----------
+
+void Unit::updateMove(MAP& map,
+                      const std::vector<std::unique_ptr<Unit>>& allUnits,
+                      int tickRate)
 {
-    (void)allUnits;
+    if (!hasTarget || path.empty()) return;
 
-    Coordinate target = destination;
+    // 1 case / seconde → on avance toutes les tickRate ticks
+    ticksWaited++;
+    if (ticksWaited < (tickRate/5)) return;
+    ticksWaited = 0;
 
-    if (MassPath::hasPlan(this)) {
-        if (!MassPath::syncPlanWithUnit(map, this, position, target)) {
-            hasTarget = false;
-            waitBlocked = 0;
-            return;
-        }
+    Coordinate next = path.front();
+    int nx = next.getX();
+    int ny = next.getY();
 
-        destination = target;
-        hasTarget = true;
+    // Vérifier si la prochaine case est libre
+    bool blocked = false;
+
+    if (!in_map(map, nx, ny)) {
+        blocked = true;
+    } else {
+        const Cell& c = map[nx][ny];
+        if (c.type_terrain == Montain ||
+            c.type_terrain == Lake    ||
+            c.type_terrain == River   ||
+            c.type_terrain == ravine  ||
+            c.buildingID   != -1)
+            blocked = true;
+
+        if (c.unit != nullptr && c.unit->getId() != id)
+            blocked = true;
     }
 
-    if (!hasTarget) {
+    if (blocked) {
+        waitBlocked++;
+        if (waitBlocked >= 2) {
+            // Recalcul du chemin
+            waitBlocked = 0;
+            path = findPath(map, position, destination, allUnits, id);
+        }
         return;
     }
 
-    if (position.getX() == destination.getX() &&
-        position.getY() == destination.getY()) {
-        hasTarget = false;
+    // --- Déplacement ---
     waitBlocked = 0;
-    MassPath::clearPlan(this);
-    return;
-        }
 
-        ticksWaited++;
+    // Libérer l'ancienne cellule
+    int ox = position.getX();
+    int oy = position.getY();
+    if (in_map(map, ox, oy))
+        map[ox][oy].unit = nullptr;
 
-        int moveDelay = std::max(1, tickRate / 5);
+    // Occuper la nouvelle cellule
+    map[nx][ny].unit = this;
+    position.setX(nx);
+    position.setY(ny);
 
-        if (ticksWaited < moveDelay) {
-            return;
-        }
+    path.erase(path.begin());
 
-        ticksWaited = 0;
-
-        Coordinate next;
-
-        if (!chooseNeighbour(map, this, position, destination, next)) {
-            hasTarget = false;
-            waitBlocked = 0;
-            MassPath::clearPlan(this);
-            return;
-        }
-
-        int oldX = position.getX();
-        int oldY = position.getY();
-
-        int newX = next.getX();
-        int newY = next.getY();
-
-        if (in_map(map, oldX, oldY) && map[oldX][oldY].unit == this) {
-            map[oldX][oldY].unit = nullptr;
-        }
-
-        map[newX][newY].unit = this;
-
-        position.setX(newX);
-        position.setY(newY);
-
+    // Arrivée à destination
+    if (path.empty()) {
+        hasTarget   = false;
         waitBlocked = 0;
-
-        if (position.getX() == destination.getX() &&
-            position.getY() == destination.getY()) {
-            hasTarget = false;
-        MassPath::clearPlan(this);
-            }
+    }
 }
+
+// ---------- Rendu ----------
 
 void Unit::render(Renderer* r, int offsetX, int offsetY, int scale) const
 {
@@ -279,32 +113,21 @@ void Unit::render(Renderer* r, int offsetX, int offsetY, int scale) const
     int radius = std::max(3, scale / 2 - 1);
 
     SDL_Color body = (team == 0)
-    ? SDL_Color{60, 120, 255, 255}
-    : SDL_Color{255, 60, 60, 255};
+        ? SDL_Color{ 60, 120, 255, 255 }
+        : SDL_Color{ 255,  60,  60, 255 };
 
-    if (selected) {
-        r->drawFilledCircle(cx, cy, radius + 3, {255, 220, 0, 180});
-    }
+    if (selected)
+        r->drawFilledCircle(cx, cy, radius + 3, { 255, 220, 0, 180 });
 
     r->drawFilledCircle(cx, cy, radius, body);
 
+    // Barre de vie
     int barW = radius * 2;
     int barH = 2;
-
-    SDL_Rect barBg = {
-        cx - radius,
-        cy - radius - 4,
-        barW,
-        barH
-    };
-
-    SDL_Rect barFg = {
-        cx - radius,
-        cy - radius - 4,
-        barW * health / 100,
-        barH
-    };
-
-    r->drawRect(barBg, {80, 0, 0, 200}, true);
-    r->drawRect(barFg, {0, 220, 0, 220}, true);
+    SDL_Rect barBg = { cx - radius, cy - radius - 4, barW, barH };
+    SDL_Rect barFg = { cx - radius, cy - radius - 4, barW * health / 100, barH };
+    r->drawRect(barBg, { 80,   0,  0, 200 }, true);
+    r->drawRect(barFg, {  0, 220,  0, 220 }, true);
 }
+
+void Unit::update() {}

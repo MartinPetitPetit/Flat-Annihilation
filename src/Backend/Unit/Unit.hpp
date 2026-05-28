@@ -2,14 +2,14 @@
 
 #include "../Entity/Entity.hpp"
 #include "../Coordinate/Coordinate.hpp"
-
-#include <memory>
+#include "../Resource/Resource.hpp"
 #include <vector>
+#include <memory>
 
+// Forward declarations pour casser la circularité
 class Renderer;
-class Cell;
-
-using MAP = std::vector<std::vector<Cell>>;
+class Player;
+using MAP = std::vector<std::vector<class Cell>>;
 
 class Unit : public Entity
 {
@@ -18,39 +18,22 @@ public:
     virtual ~Unit();
 
     void moveTo(int x, int y);
-
     virtual void update() override;
     void updateDt(float dt);
-
-    void updateMove(
-        MAP& map,
-        const std::vector<std::unique_ptr<Unit>>& allUnits,
-        int tickRate
-    );
+    void updateMove(MAP& map,
+                    const std::vector<std::unique_ptr<Unit>>& allUnits,
+                    int tickRate);
 
     void render(Renderer* renderer, int offsetX, int offsetY, int scale) const;
 
     bool isSelected() const;
     void setSelected(bool sel);
 
-    void setDestination(
-        Coordinate dest,
-        MAP& map,
-        const std::vector<std::unique_ptr<Unit>>& allUnits
-    );
+    void setDestination(Coordinate dest,
+                        MAP& map,
+                        const std::vector<std::unique_ptr<Unit>>& allUnits);
 
-    /*
-     * Accès utilisé par la sélection et par les autres systèmes.
-     */
-    Coordinate getPos() const
-    {
-        return position;
-    }
-
-    bool hasPath() const
-    {
-        return !path.empty();
-    }
+    bool hasPath() const { return !path.empty(); }
 
     static constexpr int RADIUS = 6;
 
@@ -58,11 +41,8 @@ private:
     bool selected { false };
 
     std::vector<Coordinate> path;
-
-    Coordinate destination { -1, -1 };
-
-    bool hasTarget { false };
-
-    int ticksWaited { 0 };
-    int waitBlocked { 0 };
+    Coordinate              destination   { -1, -1 };
+    bool                    hasTarget     { false   };
+    int                     ticksWaited   { 0       };
+    int                     waitBlocked   { 0       };
 };

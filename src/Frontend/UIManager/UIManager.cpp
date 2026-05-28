@@ -318,17 +318,13 @@ void UIManager::renderHUD(const Player* localPlayer, const std::vector<Unit*>& s
     drawHUDText(fps_str, 10, 10, { 0, 220, 255, 255 });
     drawHUDText(tps_str, 10, 30, { 0, 220, 255, 255 });
 
-
     // --- Ressources joueur ---
     if (localPlayer) {
-        SDL_Rect resBox = { 140, 4, 160, 50 };
+        SDL_Rect resBox = { 140, 4, 160, 25 };
         drawHUDRect(resBox, transparent, { 160, 120, 60, 255 });
         char wood_str[32];
         snprintf(wood_str, sizeof(wood_str), "wood: %d", localPlayer->getWood());
-        drawHUDText(wood_str, 148, 8,  { 200, 180, 100, 255 });
-        char food_str[32];
-        snprintf(food_str, sizeof(food_str), "food: %d", localPlayer->getFood());
-        drawHUDText(food_str, 148, 28, { 100, 220, 100, 255 });
+        drawHUDText(wood_str, 148, 8, { 200, 180, 100, 255 });
     }
 
     // --- Game Time ---
@@ -388,80 +384,19 @@ void UIManager::renderHUD(const Player* localPlayer, const std::vector<Unit*>& s
     }
     // --- Building bar ---
     SDL_Rect buildRect = getHUDBuildingRect();
+    drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
 
-    if (selectedBuilding != nullptr && selectedBuilding->getType() == BuildingType::Barracks)
-    {
-        // Barre de capacités de la caserne
-        drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
-
-        // Bouton produire unité
-        SDL_Rect unitBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
-        drawHUDRect(unitBtn, { 20, 60, 20, 180 }, borderGreen);
-        drawHUDText("Soldier",  unitBtn.x + 8,  unitBtn.y + 8,  { 100, 255, 100, 255 });
-        drawHUDText("food:10",  unitBtn.x + 8,  unitBtn.y + 28, { 180, 140, 80,  255 });
-    }
-    else
-    {
-        // Barre normale : bouton placement bâtiment
-        drawHUDRect(buildRect, { 10, 30, 10, 180 }, borderGreen);
-
-        SDL_Rect tcBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
-        bool tcSelected = inBuildingMode && selectedBuildingType == BuildingType::TownCenter;
-        SDL_Color tcFill = tcSelected ? SDL_Color{80,80,20,220} : SDL_Color{20,60,20,180};
-        drawHUDRect(tcBtn, tcFill, tcSelected ? SDL_Color{255,220,0,255} : borderGreen);
-        drawHUDText("TC",     tcBtn.x + 32, tcBtn.y + 8,  { 100, 255, 100, 255 });
-        drawHUDText("w:100",  tcBtn.x + 14, tcBtn.y + 28, { 180, 140, 80,  255 });
-
-        SDL_Rect brBtn = { buildRect.x + 106, buildRect.y + 10, 90, 50 };
-        bool brSelected = inBuildingMode && selectedBuildingType == BuildingType::Barracks;
-        SDL_Color brFill = brSelected ? SDL_Color{80,80,20,220} : SDL_Color{20,60,20,180};
-        drawHUDRect(brBtn, brFill, brSelected ? SDL_Color{255,220,0,255} : borderGreen);
-        drawHUDText("BAR",    brBtn.x + 25, brBtn.y + 8,  { 100, 255, 100, 255 });
-        drawHUDText("w:80",   brBtn.x + 18, brBtn.y + 28, { 180, 140, 80,  255 });
-    }
-
-    // --- File de production (au-dessus du panneau sélection) ---
-    if (selectedBuilding != nullptr && selectedBuilding->getType() == BuildingType::Barracks)
-    {
-        int queueSize = selectedBuilding->getQueueSize();
-        float progress = selectedBuilding->getProductionProgress();
-
-        SDL_Rect queuePanel = { selRect.x, selRect.y - 60, selRect.w, 55 };
-        drawHUDRect(queuePanel, { 10, 10, 30, 180 }, borderWhite);
-        drawHUDText("production queue", queuePanel.x + 8, queuePanel.y + 4, { 200, 200, 200, 255 });
-
-        // Icônes de la file
-        int iconW = 20, iconH = 20, iconPad = 4;
-        for (int i = 0; i < selectedBuilding->getMaxQueue(); i++)
-        {
-            SDL_Rect icon = {
-                queuePanel.x + 8 + i * (iconW + iconPad),
-                queuePanel.y + 24,
-                iconW, iconH
-            };
-            if (i < queueSize)
-                drawHUDRect(icon, { 60, 120, 255, 200 }, { 100, 160, 255, 255 });
-            else
-                drawHUDRect(icon, { 20,  20,  40, 120 }, {  60,  60,  80, 180 });
-        }
-
-        // Barre de progression de l'unité en cours
-        if (queueSize > 0)
-        {
-            SDL_Rect barBg = { queuePanel.x + 8, queuePanel.y + 48, queuePanel.w - 16, 6 };
-            SDL_Rect barFg = { barBg.x, barBg.y, static_cast<int>(barBg.w * progress), barBg.h };
-            drawHUDRect(barBg, { 20, 20, 20, 200 }, { 60, 60, 60, 200 });
-            renderer->drawRect(barFg, { 0, 220, 0, 220 }, true);
-        }
-    }
+    // Bouton Town Center
+    SDL_Rect tcBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
+    bool tcSelected = inBuildingMode && selectedBuildingType == BuildingType::TownCenter;
+    SDL_Color tcFill = tcSelected ? SDL_Color{80,80,20,220} : SDL_Color{20,60,20,180};
+    drawHUDRect(tcBtn, tcFill, tcSelected ? SDL_Color{255,220,0,255} : borderGreen);
+    drawHUDText("TC",         tcBtn.x + 32, tcBtn.y + 8,  { 100, 255, 100, 255 });
+    drawHUDText("w:100",      tcBtn.x + 14, tcBtn.y + 28, { 180, 140, 80,  255 });
 }
-
 bool UIManager::isInBuildingMode() const { return inBuildingMode; }
 BuildingType UIManager::getSelectedBuildingType() const { return selectedBuildingType; }
 void UIManager::cancelBuildingMode() { inBuildingMode = false; }
-Building* UIManager::getSelectedBuilding() const { return selectedBuilding; }
-void UIManager::selectBuilding(Building* b)       { selectedBuilding = b; inBuildingMode = false; }
-void UIManager::clearBuildingSelection()          { selectedBuilding = nullptr; }
 
 void UIManager::renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
                                     int scale, int offsetX, int offsetY)
@@ -505,13 +440,8 @@ void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& play
                                ? SDL_Color{ 100, 160, 255, 255 }
                                : SDL_Color{ 255, 100, 100, 255 };
 
-            renderer->drawRect(r, fill, true);
-
-            // Bordure jaune si sélectionné
-            if (selectedBuilding != nullptr && selectedBuilding == b.get())
-                renderer->drawRect(r, { 255, 220, 0, 255 }, false);
-            else
-                renderer->drawRect(r, border, false);
+            renderer->drawRect(r, fill,   true);
+            renderer->drawRect(r, border, false);
 
             if (scale >= 8) {
                 drawHUDText(def.name.c_str(), r.x + 2, r.y + 2, { 220, 220, 220, 255 });
@@ -546,38 +476,15 @@ bool UIManager::handleHUDClick(int mx, int my)
     if (inRect(mx, my, pauseRect)) { gamePaused = !gamePaused; return true; }
     if (inRect(mx, my, stopRect))  { return true; }
 
+    // Bouton Town Center dans la building bar
     SDL_Rect buildRect = getHUDBuildingRect();
-
-    if (selectedBuilding != nullptr && selectedBuilding->getType() == BuildingType::Barracks)
-    {
-        // Clic sur bouton Soldier → retourner true + signal externe
-        SDL_Rect unitBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
-        if (inRect(mx, my, unitBtn)) {
-            pendingProduceUnit = true;
-            return true;
-        }
-        return false;
-    }
-
-    // Barre normale
     SDL_Rect tcBtn = { buildRect.x + 8, buildRect.y + 10, 90, 50 };
     if (inRect(mx, my, tcBtn)) {
         if (inBuildingMode && selectedBuildingType == BuildingType::TownCenter)
-            inBuildingMode = false;
+            inBuildingMode = false;  // désélectionne si déjà actif
         else {
             inBuildingMode       = true;
             selectedBuildingType = BuildingType::TownCenter;
-        }
-        return true;
-    }
-
-    SDL_Rect brBtn = { buildRect.x + 106, buildRect.y + 10, 90, 50 };
-    if (inRect(mx, my, brBtn)) {
-        if (inBuildingMode && selectedBuildingType == BuildingType::Barracks)
-            inBuildingMode = false;
-        else {
-            inBuildingMode       = true;
-            selectedBuildingType = BuildingType::Barracks;
         }
         return true;
     }

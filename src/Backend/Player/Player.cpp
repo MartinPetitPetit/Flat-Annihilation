@@ -30,16 +30,8 @@ bool Player::spendWood(int amount)
     wood -= amount;
     return true;
 }
-int  Player::getFood()              const { return food; }
-void Player::addFood(int amount)          { food += amount; }
-bool Player::spendFood(int amount)
-{
-    if (food < amount) return false;
-    food -= amount;
-    return true;
-}
 
-bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP& map)
+bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP map)
 {
     const BuildingDef& def = getBuildingDef(type);
 
@@ -77,7 +69,7 @@ bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP& map)
 Building* Player::getBuilding(int buildingID) const
 {
     for (const auto& b : buildings)
-        if (b->getId() == buildingID) return b.get();
+        if (b->getTeam() == buildingID) return b.get();
     return nullptr;
 }
 
