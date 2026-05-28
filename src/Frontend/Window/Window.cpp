@@ -1,19 +1,3 @@
-/*-SDL_Window* sdlWindow
-
--int width
-
--int height
-
-+Window(title,w,h)
-
-+getSDLWindow() : SDL_Window
-
-+getSize() : Vector2i
-
-+isValid() : bool
-
-+~Window()*/
-
 #include "Window.hpp"
 
 Window::Window(const std::string& title, DISPLAY_OPTIONS opts)
@@ -43,13 +27,22 @@ bool            Window::isValid()      const { return sdlWindow != nullptr; }
 void Window::setFullscreen(bool fs)
 {
     options.fullscreen = fs;
+
     SDL_SetWindowFullscreen(this->sdlWindow, (this->options.fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+    SDL_DisplayMode displayMode;
+    if (this->options.fullscreen && SDL_GetDesktopDisplayMode(0, &displayMode) == 0) {
+		resize(displayMode.w, displayMode.h);
+    } else {
+        SDL_Log("Erreur: %s", SDL_GetError());
+    }
 }
+
 void Window::resize(int width, int height)
 {
     printf("Window::resize appelé : %dx%d\n", width, height); // ← debug
-    options.width  = width;
-    options.height = height;
+    this->options.width  = width;
+    this->options.height = height;
     SDL_SetWindowSize(this->sdlWindow, this->options.width, this->options.height);
     SDL_SetWindowPosition(this->sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }

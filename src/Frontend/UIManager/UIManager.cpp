@@ -108,11 +108,16 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     const char* labels[N] = { "generate map", "solo vs ia", "options" };
     int btnW = 320, btnH = 50;
 	SDL_Rect rects[N]; // sera recalculé à chaque frame
+	int width = window->getOptions().width, height = window->getOptions().height;
 
     // Fond
     SDL_Texture* bg = nullptr;
     SDL_Surface* s  = IMG_Load("background.png");
-    if (s) { bg = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), s); SDL_FreeSurface(s); }
+    if (s)
+	{
+		bg = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), s);
+		SDL_FreeSurface(s);
+	}
 
     SDL_Event ev;
     bool isOpen = true;
@@ -120,9 +125,9 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     int  result = -1;
 
     while (isOpen) {
-		int startY = options.height / 2 - (N * (btnH + 15)) / 2;
+		int startY = height / 2 - (N * (btnH + 15)) / 2;
 		for (int i = 0; i < N; i++)
-			rects[i] = { options.width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+			rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
         while (SDL_PollEvent(&ev)) {
             switch (ev.type) {
             case SDL_QUIT: isOpen = false; break;
@@ -168,7 +173,6 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 
     if (bg) SDL_DestroyTexture(bg);
     return result;
-	
 }
 
 void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
@@ -176,27 +180,19 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
     const int RES_COUNT = 5;
     const int   res_w[RES_COUNT]      = { 600, 800, 1280, 1920, 2560 };
     const int   res_h[RES_COUNT]      = { 600, 600,  720, 1080, 1440 };
-    SDL_DisplayMode displayMode;
-    if (options.fullscreen && SDL_GetDesktopDisplayMode(0, &displayMode) == 0) {
-        options.width      = displayMode.w;
-        options.height     = displayMode.h;
-    } else {
-        SDL_Log("Erreur: %s", SDL_GetError());
-    }
 
+	int width = this->window->getOptions().width, height = this->window->getOptions().height;
 
     int currentRes = 0;
-    for (int i = 0; i < RES_COUNT; i++)
-        if (res_w[i] == options.width && res_h[i] == options.height) currentRes = i;
-    bool fullscreen = options.fullscreen;
+    for (int i = 0; i < RES_COUNT; i++) if (res_w[i] == width && res_h[i] == height) currentRes = i;
+    bool fullscreen = window->getOptions().fullscreen;
 
-    const int   M      = 3;
+    const int M = 3;
     const char* labels[M] = { "resolution", "fullscreen", "back" };
     int btnW = 460, btnH = 50;
-    int startY = options.height/2 - (M*(btnH+15))/2;
+    int startY = height/2 - (M*(btnH+15))/2;
     SDL_Rect rects[M];
-    for (int i = 0; i < M; i++)
-        rects[i] = { options.width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+    for (int i = 0; i < M; i++) rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
 
     SDL_Event ev;
     bool isOpen = true;
@@ -214,9 +210,9 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 						if (ev.key.keysym.sym == SDLK_LEFT) { currentRes--; if (currentRes<0) currentRes=RES_COUNT-1; }
 						else                                 { currentRes++; if (currentRes>=RES_COUNT) currentRes=0; }
 						applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
-						startY = options.height/2 - (M*(btnH+15))/2;
+						startY = height/2 - (M*(btnH+15))/2;
 						for (int j = 0; j < M; j++)
-							rects[j] = { options.width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
+							rects[j] = { width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
 					}
 					if (sel==1) {
 						fullscreen = !fullscreen;
@@ -240,9 +236,9 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
                             if (i==0 && !fullscreen) {  // ← bloqué si fullscreen
 								currentRes = (currentRes+1) % RES_COUNT;
 								applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
-								startY = options.height/2 - (M*(btnH+15))/2;
+								startY = height/2 - (M*(btnH+15))/2;
 								for (int j = 0; j < M; j++)
-									rects[j] = { options.width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
+									rects[j] = { width/2 - btnW/2, startY + j*(btnH+15), btnW, btnH };
 							}
 							if (i==1) {
 								fullscreen = !fullscreen;
@@ -478,10 +474,11 @@ void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool ful
     options.width      = w;
     options.height     = h;
     options.fullscreen = fullscreen;
-
+	
+    window->resize(options.width, options.height);
     if (fsChanged) window->setFullscreen(fullscreen);
 
-    window->resize(options.width, options.height);
+
     renderer->updateViewport(options.width, options.height);
     printf("après resize, window dit : %dx%d\n", window->getOptions().width, window->getOptions().height); // ← debug
 }
