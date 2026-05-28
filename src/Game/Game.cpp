@@ -122,18 +122,34 @@ void Game::run()
             int cellX = (mx - offsetX) / scale;
             int cellY = (my - offsetY) / scale;
 
-            // Chercher un bâtiment sur cette cellule
+            std::cout << "[SELECT] clic (" << mx << "," << my << ") -> cellule ("
+                      << cellX << "," << cellY << ")\n";
+
             Building* clicked = nullptr;
             if (in_map(ptr_map->data(), cellX, cellY)) {
                 int bid = ptr_map->data()[cellX][cellY].buildingID;
+                std::cout << "[SELECT] buildingID sur la cellule : " << bid << "\n";
                 if (bid != -1) {
                     for (auto& p : ptr_players) {
-                        Building* b = p->getBuilding(bid);
-                        if (b) { clicked = b; break; }
+                        for (auto& b : p->getBuildings()) {
+                            std::cout << "[SELECT] bâtiment trouvé id=" << b->getId()
+                                      << " type=" << (int)b->getType() << "\n";
+                            if (b->getId() == bid) {
+                                clicked = b.get();
+                                break;
+                            }
+                        }
+                        if (clicked) break;
                     }
                 }
+            } else {
+                std::cout << "[SELECT] cellule hors map\n";
             }
-            ptr_uiManager->selectBuilding(clicked); // nullptr = désélection
+
+            std::cout << "[SELECT] résultat : "
+                      << (clicked ? "bâtiment sélectionné" : "nullptr") << "\n";
+
+            ptr_uiManager->selectBuilding(clicked);
             ptr_eventManager->consumeBuildingSelect();
         }
 

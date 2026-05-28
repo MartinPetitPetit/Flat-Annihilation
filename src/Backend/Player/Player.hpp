@@ -29,7 +29,7 @@ public:
     bool spendFood(int amount);
 
     // Bâtiments
-    bool      placeBuilding(BuildingType type, int mapX, int mapY, MAP map);
+    bool      placeBuilding(BuildingType type, int mapX, int mapY, MAP& map);
     Building* getBuilding(int buildingID) const;
     const std::vector<std::unique_ptr<Building>>& getBuildings() const;
 

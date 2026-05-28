@@ -480,8 +480,13 @@ void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& play
                                ? SDL_Color{ 100, 160, 255, 255 }
                                : SDL_Color{ 255, 100, 100, 255 };
 
-            renderer->drawRect(r, fill,   true);
-            renderer->drawRect(r, border, false);
+            renderer->drawRect(r, fill, true);
+
+            // Bordure jaune si sélectionné
+            if (selectedBuilding != nullptr && selectedBuilding == b.get())
+                renderer->drawRect(r, { 255, 220, 0, 255 }, false);
+            else
+                renderer->drawRect(r, border, false);
 
             if (scale >= 8) {
                 drawHUDText(def.name.c_str(), r.x + 2, r.y + 2, { 220, 220, 220, 255 });

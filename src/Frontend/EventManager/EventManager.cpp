@@ -47,10 +47,8 @@ void EventManager::onMouseDown(int x, int y, int btn)
             pendingBuild  = true;
             return;
         }
-        // Signaler position clic pour sélection bâtiment
-        pendingBuildingSelectX = x;
-        pendingBuildingSelectY = y;
-        pendingBuildingSelect  = true;
+        dragStartLeftX = x;
+        dragStartLeftY = y;
         selMgr->startDrag(x, y);
     }
 
@@ -80,7 +78,6 @@ void EventManager::onMouseDown(int x, int y, int btn)
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        // Collecter les raw pointers
         std::vector<Unit*> rawUnits;
         for (auto& u : *units) rawUnits.push_back(u.get());
 
@@ -88,6 +85,15 @@ void EventManager::onMouseUp(int x, int y, int btn)
                         renderer->getOffsetX(),
                         renderer->getOffsetY(),
                         renderer->getScale());
+
+        // Clic simple (pas un vrai drag)
+        int dx = x - dragStartLeftX;
+        int dy = y - dragStartLeftY;
+        if (dx * dx + dy * dy < 16) {
+            pendingBuildingSelectX = x;
+            pendingBuildingSelectY = y;
+            pendingBuildingSelect  = true;
+        }
     }
     if (btn == SDL_BUTTON_RIGHT)
         dragging = false;

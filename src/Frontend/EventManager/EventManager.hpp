@@ -15,6 +15,7 @@ class EventManager {
     bool              quit     { false   };
     bool              dragging { false   };
     int dragStartX{ 0 }, dragStartY{ 0 };
+    int dragStartLeftX{ 0 }, dragStartLeftY{ 0 };
     int dragStartOffsetX{ 0 }, dragStartOffsetY{ 0 };
 
     // Référence vers les unités de la scène
