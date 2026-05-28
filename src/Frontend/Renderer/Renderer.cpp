@@ -5,7 +5,7 @@ Renderer::Renderer(Window& window, const char* font_path)
 {
     sdlRenderer = SDL_CreateRenderer(
         window.getSDLWindow(), -1,
-        SDL_RENDERER_ACCELERATED
+                                     SDL_RENDERER_ACCELERATED
     );
     ResourceManager::getInstance().setRenderer(sdlRenderer);
 

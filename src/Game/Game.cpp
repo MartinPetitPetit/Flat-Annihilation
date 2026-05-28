@@ -1,30 +1,37 @@
 #include "Game.hpp"
-#include <iostream>
-#include "../Backend/Building/Building.hpp"
+
+#include "../Backend/Pathing/MassPath.hpp"
 
 Game::Game()
 {
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
-    
-	ptr_sound = std::make_unique<Sound>();
-	ptr_sound->load("click",  "sounds/rhoo.wav");
-	ptr_sound->load("hover",  "sounds/ptiou.wav");	
-    ptr_sound->loadMusic("sounds/Flat-construction-v2.wav"); 
-    ptr_sound->playMusic(); // lance en boucle infinie
-    ptr_sound->setMusicVolume(200); // 50% volume
 
-    ptr_window   = std::make_unique<Window>("Flat Annihilation", options);
+    ptr_sound = std::make_unique<Sound>();
+    ptr_sound->load("click",  "sounds/rhoo.wav");
+    ptr_sound->load("hover",  "sounds/ptiou.wav");
+    ptr_sound->loadMusic("sounds/Flat-construction-v2.wav");
+    ptr_sound->playMusic();
+    ptr_sound->setMusicVolume(200);
+
+    ptr_window = std::make_unique<Window>("Flat Annihilation", options);
     ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer, *ptr_window);
     ptr_selectionManager = std::make_unique<SelectionManager>();
-    ptr_eventManager = std::make_unique<EventManager>(*ptr_selectionManager, *ptr_renderer, *ptr_uiManager, ptr_units);
+
+    ptr_eventManager = std::make_unique<EventManager>(
+        *ptr_selectionManager,
+        *ptr_renderer,
+        *ptr_uiManager,
+        ptr_units
+    );
 }
 
 Game::~Game()
 {
     std::cout << "destruction de Game\n";
+
     ptr_players.clear();
     ptr_map.reset();
 
@@ -35,37 +42,49 @@ Game::~Game()
 
 void Game::startGame()
 {
-    // Menu principal
+    int choice = this->ptr_uiManager->showMainMenu(options, *ptr_sound);
 
-	int choice = this->ptr_uiManager->showMainMenu(options, *ptr_sound);
-    if (choice < 0) return;
+    if (choice < 0) {
+        return;
+    }
 
-    // Taille de la carte
     std::cout << "taille de la carte : MAP_W MAP_H = ";
     std::cin >> MAP_W >> MAP_H;
 
     this->ptr_map = std::make_unique<Map>(MAP_W, MAP_H);
 
-    // Unités de test : quelques soldats bleus et rouges
-    for (int i = 0; i < 15; i++){
-        ptr_units.push_back(std::make_unique<Unit>(2, 1, MAP_W/2 + 5, MAP_H/2 + i));
-        int x = MAP_W/2 + 5;
-        int y = MAP_H/2 + i;
-        if (in_map(ptr_map->data(), x, y))
+    /*
+     * Unités de test.
+     */
+    for (int i = 0; i < 15; i++) {
+        int x = MAP_W / 2 + 5;
+        int y = MAP_H / 2 + i;
+
+        int unitId = static_cast<int>(ptr_units.size());
+
+        ptr_units.push_back(
+            std::make_unique<Unit>(unitId, 1, x, y)
+        );
+
+        if (in_map(ptr_map->data(), x, y)) {
             ptr_map->data()[x][y].unit = ptr_units.back().get();
+        }
     }
-        // Joueur humain
+
     this->ptr_players.push_back(std::make_unique<Player>());
 
-    // Joueurs IA
     int nbIA = 0;
+
     std::cout << "combien de joueurs IA ? ";
     std::cin >> nbIA;
-    for (int i = 0; i < nbIA; i++)
-        this->ptr_players.push_back(std::make_unique<Player>(i));
 
-    for (auto& p : this->ptr_players)
+    for (int i = 0; i < nbIA; i++) {
+        this->ptr_players.push_back(std::make_unique<Player>(i));
+    }
+
+    for (auto& p : this->ptr_players) {
         std::cout << "joueur : " << p->getName() << "\n";
+    }
 
     this->running = true;
     run();
@@ -80,121 +99,92 @@ void Game::stopGame()
 
 void Game::run()
 {
-    Uint32 lastTick       = SDL_GetTicks();
-    Uint32 lastFrame      = SDL_GetTicks();
-    Uint32 lastStatsTime  = SDL_GetTicks(); // ← timer pour les stats
-    float  tickAccumulator = 0.0f;
-    int    frameCount     = 0;
-    int    tickCount      = 0;
+    Uint32 lastTick = SDL_GetTicks();
+    Uint32 lastFrame = SDL_GetTicks();
+    Uint32 lastStatsTime = SDL_GetTicks();
+
+    float tickAccumulator = 0.0f;
+
+    int frameCount = 0;
+    int tickCount = 0;
 
     while (running && !ptr_eventManager->isQuit())
     {
-        Uint32 now     = SDL_GetTicks();
-        float  elapsed = static_cast<float>(now - lastTick);
-        lastTick       = now;
+        Uint32 now = SDL_GetTicks();
+        float elapsed = static_cast<float>(now - lastTick);
+        lastTick = now;
 
         tickAccumulator += elapsed;
 
         this->ptr_eventManager->pollEvents();
-        // Placement de bâtiment
+
+        /*
+         * Placement de bâtiment.
+         */
         if (ptr_eventManager->pendingBuild && !ptr_players.empty()) {
             int mx = ptr_eventManager->pendingBuildX;
             int my = ptr_eventManager->pendingBuildY;
-            int scale   = ptr_renderer->getScale();
+
+            int scale = ptr_renderer->getScale();
             int offsetX = ptr_renderer->getOffsetX();
             int offsetY = ptr_renderer->getOffsetY();
 
             int cellX = (mx - offsetX) / scale;
             int cellY = (my - offsetY) / scale;
 
-            ptr_players[0]->placeBuilding(ptr_uiManager->getSelectedBuildingType(), cellX, cellY, ptr_map->setGrid());
+            ptr_players[0]->placeBuilding(
+                ptr_uiManager->getSelectedBuildingType(),
+                                          cellX,
+                                          cellY,
+                                          ptr_map->setGrid()
+            );
+
             ptr_uiManager->cancelBuildingMode();
             ptr_eventManager->consumeBuild();
         }
-        // Sélection de bâtiment
-        if (ptr_eventManager->pendingBuildingSelect) {
-            int mx = ptr_eventManager->pendingBuildingSelectX;
-            int my = ptr_eventManager->pendingBuildingSelectY;
-            int scale   = ptr_renderer->getScale();
-            int offsetX = ptr_renderer->getOffsetX();
-            int offsetY = ptr_renderer->getOffsetY();
 
-            int cellX = (mx - offsetX) / scale;
-            int cellY = (my - offsetY) / scale;
-
-            std::cout << "[SELECT] clic (" << mx << "," << my << ") -> cellule ("
-                      << cellX << "," << cellY << ")\n";
-
-            Building* clicked = nullptr;
-            if (in_map(ptr_map->data(), cellX, cellY)) {
-                int bid = ptr_map->data()[cellX][cellY].buildingID;
-                std::cout << "[SELECT] buildingID sur la cellule : " << bid << "\n";
-                if (bid != -1) {
-                    for (auto& p : ptr_players) {
-                        for (auto& b : p->getBuildings()) {
-                            std::cout << "[SELECT] bâtiment trouvé id=" << b->getId()
-                                      << " type=" << (int)b->getType() << "\n";
-                            if (b->getId() == bid) {
-                                clicked = b.get();
-                                break;
-                            }
-                        }
-                        if (clicked) break;
-                    }
-                }
-            } else {
-                std::cout << "[SELECT] cellule hors map\n";
-            }
-
-            std::cout << "[SELECT] résultat : "
-                      << (clicked ? "bâtiment sélectionné" : "nullptr") << "\n";
-
-            ptr_uiManager->selectBuilding(clicked);
-            ptr_eventManager->consumeBuildingSelect();
-        }
-
-        // Production d'unité (bouton Soldier cliqué)
-        if (ptr_uiManager->pendingProduceUnit) {
-            ptr_uiManager->pendingProduceUnit = false;
-            Building* b = ptr_uiManager->getSelectedBuilding();
-            if (b && !ptr_players.empty()) {
-                if (ptr_players[0]->spendFood(10)) {
-                    if (!b->queueUnit()) {
-                        ptr_players[0]->addFood(10); // file pleine, remboursement
-                    }
-                }
-            }
-        }
-        // Ordre de déplacement
+        /*
+         * Ordre de déplacement.
+         *
+         * Nova lógica:
+         * - clique NÃO calcula A* inteiro;
+         * - clique só agenda uma busca incremental;
+         * - novo clique cancela a busca anterior;
+         * - só o último clique continua.
+         *
+         * As unidades continuam com o plano antigo até a nova rota ficar pronta.
+         */
         if (ptr_eventManager->pendingMove) {
             int mx = ptr_eventManager->pendingMoveX;
             int my = ptr_eventManager->pendingMoveY;
 
             std::vector<Unit*>& sel = ptr_selectionManager->getSelected();
-            int count = static_cast<int>(sel.size());
 
-            // Calcul des destinations en formation
-            std::vector<Coordinate> dests = formationDestinations(
-                ptr_map->setGrid(), Coordinate(mx, my), count);
-
-            for (int i = 0; i < count; i++) {
-                Coordinate dest = (i < static_cast<int>(dests.size()))
-                                ? dests[i]
-                                : Coordinate(mx, my);
-                sel[i]->setDestination(dest, ptr_map->setGrid(), ptr_units);
+            if (!sel.empty()) {
+                MassPath::requestGroupMove(
+                    ptr_map->setGrid(),
+                                           sel,
+                                           Coordinate(mx, my)
+                );
             }
 
             ptr_eventManager->consumeMove();
         }
-        // Gestion pause via clic HUD (intercepté avant EventManager pour les boutons)
-        // Note : le clic HUD est géré dans EventManager via handleHUDClick
 
+        /*
+         * Ticks de jeu.
+         */
         while (tickAccumulator >= TICK_DELAY)
         {
-            if (!ptr_uiManager->isGamePaused())
+            if (!ptr_uiManager->isGamePaused()) {
                 this->update();
+            }
+
             tickAccumulator -= TICK_DELAY;
-            if (!ptr_uiManager->isGamePaused()) tickCount++;
+
+            if (!ptr_uiManager->isGamePaused()) {
+                tickCount++;
+            }
 
             if (tickAccumulator > TICK_DELAY * 5) {
                 tickAccumulator = 0;
@@ -202,146 +192,164 @@ void Game::run()
             }
         }
 
+        /*
+         * Rendu.
+         */
         Uint32 frameNow = SDL_GetTicks();
+
         if (FPS_CAP == 0 || static_cast<float>(frameNow - lastFrame) >= FRAME_DELAY)
         {
-        this->ptr_renderer->clear();
-// Récupère joueurs pour affichage
-        std::vector<Player*> rawPlayers;
-        for (auto& p : ptr_players) rawPlayers.push_back(p.get());
+            this->ptr_renderer->clear();
 
-        this->ptr_renderer->drawMap(ptr_map->getGrid(), MAP_W, MAP_H, options);
-                // Rendu des unités
-        for (auto& u : ptr_units)
-            u->render(ptr_renderer.get(),
-                    ptr_renderer->getOffsetX(),
-                    ptr_renderer->getOffsetY(),
-                    ptr_renderer->getScale());
-        this->ptr_uiManager->renderBuildings(ptr_map->getGrid(), rawPlayers,
-            ptr_renderer->getScale(),
-            ptr_renderer->getOffsetX(),
-            ptr_renderer->getOffsetY());
-        this->ptr_uiManager->renderDragRect(*ptr_selectionManager);
+            std::vector<Player*> rawPlayers;
 
-        // Ghost de placement
-        if (ptr_uiManager->isInBuildingMode()) {
-            int mx, my;
-            SDL_GetMouseState(&mx, &my);
-            ptr_uiManager->renderBuildingGhost(mx, my,
-                ptr_uiManager->getSelectedBuildingType(),
-                ptr_renderer->getScale(),
-                ptr_renderer->getOffsetX(),
-                ptr_renderer->getOffsetY());
-        }
+            for (auto& p : ptr_players) {
+                rawPlayers.push_back(p.get());
+            }
 
-        this->ptr_uiManager->renderHUD(
-    ptr_players.empty() ? nullptr : ptr_players[0].get(),
-    ptr_selectionManager->getSelected()
-);
-        this->ptr_renderer->present();
+            this->ptr_renderer->drawMap(
+                ptr_map->getGrid(),
+                                        MAP_W,
+                                        MAP_H,
+                                        options
+            );
+
+            for (auto& u : ptr_units) {
+                u->render(
+                    ptr_renderer.get(),
+                          ptr_renderer->getOffsetX(),
+                          ptr_renderer->getOffsetY(),
+                          ptr_renderer->getScale()
+                );
+            }
+
+            this->ptr_uiManager->renderBuildings(
+                ptr_map->getGrid(),
+                                                 rawPlayers,
+                                                 ptr_renderer->getScale(),
+                                                 ptr_renderer->getOffsetX(),
+                                                 ptr_renderer->getOffsetY()
+            );
+
+            this->ptr_uiManager->renderDragRect(*ptr_selectionManager);
+
+            if (ptr_uiManager->isInBuildingMode()) {
+                int mx, my;
+                SDL_GetMouseState(&mx, &my);
+
+                ptr_uiManager->renderBuildingGhost(
+                    mx,
+                    my,
+                    ptr_uiManager->getSelectedBuildingType(),
+                                                   ptr_renderer->getScale(),
+                                                   ptr_renderer->getOffsetX(),
+                                                   ptr_renderer->getOffsetY()
+                );
+            }
+
+            this->ptr_uiManager->renderHUD(
+                ptr_players.empty() ? nullptr : ptr_players[0].get(),
+                                           ptr_selectionManager->getSelected()
+            );
+
+            this->ptr_renderer->present();
+
             lastFrame = frameNow;
-            frameCount++;  // ← compter les frames
+            frameCount++;
         }
         else
         {
             SDL_Delay(1);
         }
 
-        // -- Affichage des stats toutes les secondes
+        /*
+         * Stats FPS / TPS.
+         */
         Uint32 statsNow = SDL_GetTicks();
+
         if (statsNow - lastStatsTime >= 1000)
         {
             hudFPS = frameCount;
             hudTPS = tickCount;
-            ptr_uiManager->setHUDStats(hudFPS, hudTPS, currentTick, TICK_RATE);
+
+            ptr_uiManager->setHUDStats(
+                hudFPS,
+                hudTPS,
+                currentTick,
+                TICK_RATE
+            );
 
             float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
-            int   minutes         = static_cast<int>(gameTimeSeconds) / 60;
-            int   seconds         = static_cast<int>(gameTimeSeconds) % 60;
 
-            std::cout << "FPS: "    << frameCount
-                      << " | TPS: " << tickCount
-                      << " | tick: " << currentTick
-                      << " | temps: " << minutes << "m" << seconds << "s"
-                      << "\r" << std::flush;
+            int minutes = static_cast<int>(gameTimeSeconds) / 60;
+            int seconds = static_cast<int>(gameTimeSeconds) % 60;
 
-            frameCount    = 0;
-            tickCount     = 0;
+            std::cout << "FPS: " << frameCount
+            << " | TPS: " << tickCount
+            << " | tick: " << currentTick
+            << " | temps: " << minutes << "m" << seconds << "s"
+            << "\r" << std::flush;
+
+            frameCount = 0;
+            tickCount = 0;
             lastStatsTime = statsNow;
         }
     }
 
-    std::cout << "\n"; // saut de ligne propre à la fin
+    std::cout << "\n";
 }
 
 void Game::update()
 {
     currentTick++;
-    // Production des bâtiments
-    float dtSeconds = 1.0f / TICK_RATE;
-    productionAccumulator += dtSeconds;
 
-    for (auto& player : ptr_players) {
-        for (auto& building : player->getBuildings()) {
-            building->tick(dtSeconds);
+    /*
+     * Primeiro processa um pedaço do A*.
+     * Assim, se uma rota ficar pronta, a unidade já pode usar no mesmo tick.
+     */
+    MassPath::processRepathRequests(ptr_map->setGrid());
 
-            if (building->hasPendingSpawn()) {
-                building->consumeSpawn();
+    /*
+     * Se uma rota falhou, para as unidades afetadas.
+     */
+    std::vector<Unit*> failedUnits;
 
-                // Trouver une cellule adjacente libre
-                int bx = building->getMapX();
-                int by = building->getMapY();
-                const BuildingDef& def = getBuildingDef(building->getType());
+    if (MassPath::consumeFailedMove(failedUnits)) {
+        std::cout << "Rota impossível: unidades paradas.\n";
 
-                int spawnX = -1, spawnY = -1;
-                int offsets[][2] = {
-                    {0, def.sizeY}, {def.sizeX, 0}, {0, -1}, {-1, 0},
-                    {def.sizeX, def.sizeY}, {-1, -1},
-                    {def.sizeX, -1}, {-1, def.sizeY}
-                };
-                for (auto& off : offsets) {
-                    int cx = bx + off[0];
-                    int cy = by + off[1];
-                    if (!in_map(ptr_map->data(), cx, cy)) continue;
-                    const Cell& c = ptr_map->data()[cx][cy];
-                    if (!c.walkable) continue;
-                    if (c.type_terrain == Montain || c.type_terrain == Lake ||
-                        c.type_terrain == River   || c.type_terrain == ravine) continue;
-                    if (c.buildingID != -1) continue;
-                    if (c.unit != nullptr) continue;
-                    spawnX = cx;
-                    spawnY = cy;
-                    break;
-                }
-
-                if (spawnX == -1) continue; // pas de place, unité perdue
-
-                int newId = static_cast<int>(ptr_units.size());
-                ptr_units.push_back(std::make_unique<Unit>(newId, building->getTeam(), spawnX, spawnY));
-                ptr_map->data()[spawnX][spawnY].unit = ptr_units.back().get();
+        for (Unit* u : failedUnits) {
+            if (!u) {
+                continue;
             }
+
+            MassPath::clearPlan(u);
+
+            u->setDestination(
+                u->getPos(),
+                              ptr_map->setGrid(),
+                              ptr_units
+            );
         }
     }
 
-    // Déplacement des unités
-    for (auto& u : ptr_units)
-    u->updateMove(ptr_map->setGrid(), ptr_units, TICK_RATE);
+    /*
+     * Déplacement des unités.
+     */
+    for (auto& u : ptr_units) {
+        u->updateMove(
+            ptr_map->setGrid(),
+                      ptr_units,
+                      TICK_RATE
+        );
+    }
 
-    // -- Chaque tick : déplacements, collisions, etc.
-    // ptr_map->update(currentTick);  // TODO
-
-    // -- Toutes les secondes de jeu (TICK_RATE ticks)
     if (currentTick % TICK_RATE == 0)
     {
         // production de ressources, etc.
     }
 
-    // -- Toutes les 5 secondes
     if (currentTick % (TICK_RATE * 5) == 0)
     {
         // événements rares
     }
-
-    // -- Convertir en secondes de jeu si besoin
-    // float gameTimeSeconds = static_cast<float>(currentTick) / TICK_RATE;
 }

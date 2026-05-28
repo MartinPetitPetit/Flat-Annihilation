@@ -13,6 +13,7 @@
 #include "../Backend/Player/Player.hpp"
 #include "../Backend/Unit/Unit.hpp"
 #include "../Frontend/Sound/Sound.hpp"
+#include "../Backend/Pathing/MassPath.hpp"
 
 static constexpr int   TICK_RATE    { 10   };
 static constexpr float TICK_DELAY   { 1000.0f / TICK_RATE };
