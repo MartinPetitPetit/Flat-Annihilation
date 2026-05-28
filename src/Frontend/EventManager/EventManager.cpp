@@ -47,7 +47,10 @@ void EventManager::onMouseDown(int x, int y, int btn)
             pendingBuild  = true;
             return;
         }
-
+        // Signaler position clic pour sélection bâtiment
+        pendingBuildingSelectX = x;
+        pendingBuildingSelectY = y;
+        pendingBuildingSelect  = true;
         selMgr->startDrag(x, y);
     }
 

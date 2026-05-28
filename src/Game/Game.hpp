@@ -48,6 +48,7 @@ class Game
 		int    MAP_W   { 0     };
 		int    MAP_H   { 0     };
 		bool   running { false };
+		float  productionAccumulator { 0.0f };
 		int    hudFPS  { 0     };
 		int    hudTPS  { 0     };
 		Uint64 currentTick { 0 };

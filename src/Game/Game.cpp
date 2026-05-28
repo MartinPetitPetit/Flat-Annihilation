@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include <iostream>
+#include "../Backend/Building/Building.hpp"
 
 Game::Game()
 {
@@ -109,6 +110,44 @@ void Game::run()
             ptr_players[0]->placeBuilding(ptr_uiManager->getSelectedBuildingType(), cellX, cellY, ptr_map->setGrid());
             ptr_uiManager->cancelBuildingMode();
             ptr_eventManager->consumeBuild();
+        }
+        // Sélection de bâtiment
+        if (ptr_eventManager->pendingBuildingSelect) {
+            int mx = ptr_eventManager->pendingBuildingSelectX;
+            int my = ptr_eventManager->pendingBuildingSelectY;
+            int scale   = ptr_renderer->getScale();
+            int offsetX = ptr_renderer->getOffsetX();
+            int offsetY = ptr_renderer->getOffsetY();
+
+            int cellX = (mx - offsetX) / scale;
+            int cellY = (my - offsetY) / scale;
+
+            // Chercher un bâtiment sur cette cellule
+            Building* clicked = nullptr;
+            if (in_map(ptr_map->data(), cellX, cellY)) {
+                int bid = ptr_map->data()[cellX][cellY].buildingID;
+                if (bid != -1) {
+                    for (auto& p : ptr_players) {
+                        Building* b = p->getBuilding(bid);
+                        if (b) { clicked = b; break; }
+                    }
+                }
+            }
+            ptr_uiManager->selectBuilding(clicked); // nullptr = désélection
+            ptr_eventManager->consumeBuildingSelect();
+        }
+
+        // Production d'unité (bouton Soldier cliqué)
+        if (ptr_uiManager->pendingProduceUnit) {
+            ptr_uiManager->pendingProduceUnit = false;
+            Building* b = ptr_uiManager->getSelectedBuilding();
+            if (b && !ptr_players.empty()) {
+                if (ptr_players[0]->spendFood(10)) {
+                    if (!b->queueUnit()) {
+                        ptr_players[0]->addFood(10); // file pleine, remboursement
+                    }
+                }
+            }
         }
         // Ordre de déplacement
         if (ptr_eventManager->pendingMove) {
@@ -222,6 +261,51 @@ void Game::run()
 void Game::update()
 {
     currentTick++;
+    // Production des bâtiments
+    float dtSeconds = 1.0f / TICK_RATE;
+    productionAccumulator += dtSeconds;
+
+    for (auto& player : ptr_players) {
+        for (auto& building : player->getBuildings()) {
+            building->tick(dtSeconds);
+
+            if (building->hasPendingSpawn()) {
+                building->consumeSpawn();
+
+                // Trouver une cellule adjacente libre
+                int bx = building->getMapX();
+                int by = building->getMapY();
+                const BuildingDef& def = getBuildingDef(building->getType());
+
+                int spawnX = -1, spawnY = -1;
+                int offsets[][2] = {
+                    {0, def.sizeY}, {def.sizeX, 0}, {0, -1}, {-1, 0},
+                    {def.sizeX, def.sizeY}, {-1, -1},
+                    {def.sizeX, -1}, {-1, def.sizeY}
+                };
+                for (auto& off : offsets) {
+                    int cx = bx + off[0];
+                    int cy = by + off[1];
+                    if (!in_map(ptr_map->data(), cx, cy)) continue;
+                    const Cell& c = ptr_map->data()[cx][cy];
+                    if (!c.walkable) continue;
+                    if (c.type_terrain == Montain || c.type_terrain == Lake ||
+                        c.type_terrain == River   || c.type_terrain == ravine) continue;
+                    if (c.buildingID != -1) continue;
+                    if (c.unit != nullptr) continue;
+                    spawnX = cx;
+                    spawnY = cy;
+                    break;
+                }
+
+                if (spawnX == -1) continue; // pas de place, unité perdue
+
+                int newId = static_cast<int>(ptr_units.size());
+                ptr_units.push_back(std::make_unique<Unit>(newId, building->getTeam(), spawnX, spawnY));
+                ptr_map->data()[spawnX][spawnY].unit = ptr_units.back().get();
+            }
+        }
+    }
 
     // Déplacement des unités
     for (auto& u : ptr_units)

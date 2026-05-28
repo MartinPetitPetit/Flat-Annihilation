@@ -30,6 +30,14 @@ bool Player::spendWood(int amount)
     wood -= amount;
     return true;
 }
+int  Player::getFood()              const { return food; }
+void Player::addFood(int amount)          { food += amount; }
+bool Player::spendFood(int amount)
+{
+    if (food < amount) return false;
+    food -= amount;
+    return true;
+}
 
 bool Player::placeBuilding(BuildingType type, int mapX, int mapY, MAP map)
 {

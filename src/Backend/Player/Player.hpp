@@ -24,6 +24,9 @@ public:
     int  getWood()  const;
     void addWood(int amount);
     bool spendWood(int amount);
+    int  getFood()  const;
+    void addFood(int amount);
+    bool spendFood(int amount);
 
     // Bâtiments
     bool      placeBuilding(BuildingType type, int mapX, int mapY, MAP map);
@@ -35,7 +38,8 @@ protected:
     std::string name;
     std::vector<Entity*> entities;
 
-    int wood { 300 };  // ressource de départ
+    int wood { 300 };
+    int food { 1000 };
 
     std::vector<std::unique_ptr<Building>> buildings;
     int nextBuildingID { 0 };
