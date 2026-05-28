@@ -28,14 +28,16 @@ void Window::setFullscreen(bool fs)
 {
     options.fullscreen = fs;
 
-    SDL_SetWindowFullscreen(this->sdlWindow, (this->options.fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-
     SDL_DisplayMode displayMode;
     if (this->options.fullscreen && SDL_GetDesktopDisplayMode(0, &displayMode) == 0) {
 		resize(displayMode.w, displayMode.h);
     } else {
         SDL_Log("Erreur: %s", SDL_GetError());
     }
+
+    SDL_SetWindowFullscreen(this->sdlWindow, (this->options.fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+
 }
 
 void Window::resize(int width, int height)

@@ -107,8 +107,10 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     const int   N      = 3;
     const char* labels[N] = { "generate map", "solo vs ia", "options" };
     int btnW = 320, btnH = 50;
-	SDL_Rect rects[N]; // sera recalculé à chaque frame
+
 	int width = window->getOptions().width, height = window->getOptions().height;
+
+	SDL_Rect rects[N]; // sera recalculé à chaque frame
 
     // Fond
     SDL_Texture* bg = nullptr;
@@ -125,9 +127,13 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     int  result = -1;
 
     while (isOpen) {
+
+		width = this->window->getOptions().width;
+		height = this->window->getOptions().height;
+
 		int startY = height / 2 - (N * (btnH + 15)) / 2;
-		for (int i = 0; i < N; i++)
-			rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+		for (int i = 0; i < N; i++) rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+
         while (SDL_PollEvent(&ev)) {
             switch (ev.type) {
             case SDL_QUIT: isOpen = false; break;
@@ -190,15 +196,22 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
     const int M = 3;
     const char* labels[M] = { "resolution", "fullscreen", "back" };
     int btnW = 460, btnH = 50;
-    int startY = height/2 - (M*(btnH+15))/2;
+
     SDL_Rect rects[M];
-    for (int i = 0; i < M; i++) rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+
 
     SDL_Event ev;
     bool isOpen = true;
     int  sel    = 0;
 
     while (isOpen) {
+
+		width = this->window->getOptions().width;
+		height = this->window->getOptions().height;
+
+		int startY = height/2 - (M*(btnH+15))/2;
+		for (int i = 0; i < M; i++) rects[i] = { width/2 - btnW/2, startY + i*(btnH+15), btnW, btnH };
+
         while (SDL_PollEvent(&ev)) {
             switch (ev.type) {
             case SDL_QUIT: isOpen = false; break;
@@ -217,6 +230,10 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 					if (sel==1) {
 						fullscreen = !fullscreen;
 						applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+						currentRes = 0;
+						for (int i = 0; i < RES_COUNT; i++) if (res_w[i] == width && res_h[i] == height) currentRes = i;
+						width = this->window->getOptions().width;
+						height = this->window->getOptions().height;
 					}
 				}
                 if (ev.key.keysym.sym == SDLK_RETURN && sel==2) isOpen = false;
@@ -243,6 +260,10 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 							if (i==1) {
 								fullscreen = !fullscreen;
 								applyResolution(options, res_w[currentRes], res_h[currentRes], fullscreen);
+								currentRes = 0;
+								for (int i = 0; i < RES_COUNT; i++) if (res_w[i] == width && res_h[i] == height) currentRes = i;
+								width = this->window->getOptions().width;
+								height = this->window->getOptions().height;
 							}
 							if (i==2) isOpen = false;
                         }
@@ -257,7 +278,11 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 
             // Valeur à droite
             char val[64] = "";
-            if (i==0) snprintf(val, sizeof(val), " %dx%d ", res_w[currentRes], res_h[currentRes]);
+			if (i == 0) {
+				if (!fullscreen) snprintf(val, sizeof(val), " %dx%d ", res_w[currentRes], res_h[currentRes]);
+				else  snprintf(val, sizeof(val), " %dx%d ", width, height);
+			}
+
             if (i==1) snprintf(val, sizeof(val), " %s ", fullscreen ? "on" : "off");
             if (val[0]) {
                 SDL_Color cyan = { 0, 220, 255, 255 };
@@ -478,7 +503,8 @@ void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool ful
     window->resize(options.width, options.height);
     if (fsChanged) window->setFullscreen(fullscreen);
 
+	int width = this->window->getOptions().width, height = this->window->getOptions().height;
 
-    renderer->updateViewport(options.width, options.height);
-    printf("après resize, window dit : %dx%d\n", window->getOptions().width, window->getOptions().height); // ← debug
+    renderer->updateViewport(width, height);
+    printf("après resize, window dit : %dx%d\n", width, height); // ← debug
 }
