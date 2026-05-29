@@ -235,6 +235,35 @@ struct RIVER {
     int turn_chance;
 };
 
+
+/*
+ * ============================================================
+ * STARTING BASE CREATION
+ * ============================================================
+ */
+
+class Player;
+
+/*
+ * Côté de départ utilisé par la carte pour créer les bases initiales.
+ */
+enum class StartBaseSide {
+    Left,
+    Right,
+};
+
+/*
+ * Crée une base initiale directement depuis le module Map.
+ * La base contient un Town Center et un nombre configurable de collecteurs.
+ */
+bool create_start_base(
+    MAP& map,
+    Player& player,
+    std::vector<std::unique_ptr<Unit>>& units,
+    StartBaseSide side,
+    int collectorCount = 5
+);
+
 /*
  * ============================================================
  * MAP CREATION AND GENERAL UTILITIES

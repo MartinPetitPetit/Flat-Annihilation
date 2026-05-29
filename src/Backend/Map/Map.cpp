@@ -2,9 +2,14 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <algorithm>
 #include <vector>
 
 #include "Map.hpp"
+
+#include "../Building/Building.hpp"
+#include "../Player/Player.hpp"
+#include "../Unit/Collector.hpp"
 
 
 
@@ -440,4 +445,288 @@ void generate_map(MAP& map)
 
 	create_bush_patches(map, cfg);
 	create_scattered_bushes(map, cfg);
+}
+
+
+/*
+ * ============================================================
+ * STARTING BASE CREATION
+ * ============================================================
+ */
+
+namespace
+{
+    bool map_can_spawn_unit_at(const MAP& map, int x, int y)
+    {
+        if (!in_map(map, x, y)) {
+            return false;
+        }
+
+        const Cell& cell = map[x][y];
+
+        return cell.walkable &&
+               cell.type_terrain == Plain &&
+               cell.buildingID == -1 &&
+               cell.resource == nullptr &&
+               cell.unit == nullptr;
+    }
+
+    bool map_can_place_building_at(const MAP& map, BuildingType type, int x, int y)
+    {
+        const BuildingDef& def = getBuildingDef(type);
+
+        for (int dx = 0; dx < def.sizeX; dx++) {
+            for (int dy = 0; dy < def.sizeY; dy++) {
+                int px = x + dx;
+                int py = y + dy;
+
+                if (!in_map(map, px, py)) {
+                    return false;
+                }
+
+                const Cell& cell = map[px][py];
+
+                if (cell.type_terrain != Plain ||
+                    cell.buildingID != -1 ||
+                    cell.resource != nullptr ||
+                    cell.unit != nullptr) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void map_clear_start_cell(MAP& map, int x, int y)
+    {
+        if (!in_map(map, x, y)) {
+            return;
+        }
+
+        map[x][y].type_terrain = Plain;
+        map[x][y].walkable = true;
+        map[x][y].occupied = false;
+        map[x][y].buildingID = -1;
+        map[x][y].buildingOwner = -1;
+        map[x][y].resource = nullptr;
+        map[x][y].unit = nullptr;
+    }
+
+    void map_clear_start_area(MAP& map, int townX, int townY)
+    {
+        const BuildingDef& def = getBuildingDef(BuildingType::TownCenter);
+
+        int minX = townX - 8;
+        int maxX = townX + def.sizeX + 8;
+        int minY = townY - 8;
+        int maxY = townY + def.sizeY + 8;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                map_clear_start_cell(map, x, y);
+            }
+        }
+    }
+
+    bool map_find_building_spot_near(
+        const MAP& map,
+        BuildingType type,
+        int centerX,
+        int centerY,
+        int& outX,
+        int& outY
+    ) {
+        for (int radius = 0; radius <= 24; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
+                    bool border =
+                        dx == -radius ||
+                        dx == radius ||
+                        dy == -radius ||
+                        dy == radius;
+
+                    if (!border && radius != 0) {
+                        continue;
+                    }
+
+                    int x = centerX + dx;
+                    int y = centerY + dy;
+
+                    if (map_can_place_building_at(map, type, x, y)) {
+                        outX = x;
+                        outY = y;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    bool map_find_spawn_cell_near_building(
+        const MAP& map,
+        const Building* building,
+        int& outX,
+        int& outY
+    ) {
+        if (building == nullptr) {
+            return false;
+        }
+
+        const BuildingDef& def = getBuildingDef(building->getType());
+
+        int bx = building->getMapX();
+        int by = building->getMapY();
+
+        for (int radius = 1; radius <= 8; radius++) {
+            int minX = bx - radius;
+            int maxX = bx + def.sizeX - 1 + radius;
+            int minY = by - radius;
+            int maxY = by + def.sizeY - 1 + radius;
+
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    bool border =
+                        x == minX ||
+                        x == maxX ||
+                        y == minY ||
+                        y == maxY;
+
+                    if (!border) {
+                        continue;
+                    }
+
+                    if (map_can_spawn_unit_at(map, x, y)) {
+                        outX = x;
+                        outY = y;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    Building* map_find_building_at(Player& player, BuildingType type, int x, int y)
+    {
+        for (const auto& building : player.getBuildings()) {
+            if (!building || !building->isAlive()) {
+                continue;
+            }
+
+            if (building->getType() == type &&
+                building->getMapX() == x &&
+                building->getMapY() == y) {
+                return building.get();
+            }
+        }
+
+        return nullptr;
+    }
+
+    bool map_spawn_collector_near_town_center(
+        MAP& map,
+        Player& player,
+        std::vector<std::unique_ptr<Unit>>& units,
+        Building* townCenter
+    ) {
+        int spawnX = 0;
+        int spawnY = 0;
+
+        if (!map_find_spawn_cell_near_building(map, townCenter, spawnX, spawnY)) {
+            return false;
+        }
+
+        int unitId = static_cast<int>(units.size());
+
+        units.push_back(
+            std::make_unique<Collector>(unitId, player.getId(), spawnX, spawnY)
+        );
+
+        map[spawnX][spawnY].unit = units.back().get();
+        return true;
+    }
+}
+
+bool create_start_base(
+    MAP& map,
+    Player& player,
+    std::vector<std::unique_ptr<Unit>>& units,
+    StartBaseSide side,
+    int collectorCount
+) {
+    if (map.empty() || map[0].empty()) {
+        return false;
+    }
+
+    int mapWidth = static_cast<int>(map.size());
+    int mapHeight = static_cast<int>(map[0].size());
+
+    const BuildingDef& townDef = getBuildingDef(BuildingType::TownCenter);
+
+    if (mapWidth < townDef.sizeX || mapHeight < townDef.sizeY) {
+        return false;
+    }
+
+    int maxTownX = std::max(0, mapWidth - townDef.sizeX - 1);
+    int maxTownY = std::max(0, mapHeight - townDef.sizeY - 1);
+
+    int desiredX = 0;
+    int desiredY = clamp_int(mapHeight / 2 - townDef.sizeY / 2, 1, maxTownY);
+
+    if (side == StartBaseSide::Left) {
+        desiredX = clamp_int(5, 1, maxTownX);
+    }
+    else {
+        desiredX = clamp_int(mapWidth - townDef.sizeX - 6, 1, maxTownX);
+    }
+
+    /*
+     * La carte prépare elle-même une zone sûre pour les bases initiales.
+     * Cela évite qu'une montagne, une rivière, une ravine ou une ressource
+     * bloque le Town Center ou les collecteurs au départ.
+     */
+    map_clear_start_area(map, desiredX, desiredY);
+
+    int townX = 0;
+    int townY = 0;
+
+    if (!map_find_building_spot_near(
+            map,
+            BuildingType::TownCenter,
+            desiredX,
+            desiredY,
+            townX,
+            townY
+        )) {
+        return false;
+    }
+
+    if (!player.createBuildingFree(BuildingType::TownCenter, townX, townY, map)) {
+        return false;
+    }
+
+    Building* townCenter = map_find_building_at(
+        player,
+        BuildingType::TownCenter,
+        townX,
+        townY
+    );
+
+    if (townCenter == nullptr) {
+        return false;
+    }
+
+    int safeCollectorCount = collectorCount < 0 ? 0 : collectorCount;
+
+    for (int i = 0; i < safeCollectorCount; i++) {
+        if (!map_spawn_collector_near_town_center(map, player, units, townCenter)) {
+            break;
+        }
+    }
+
+    return true;
 }

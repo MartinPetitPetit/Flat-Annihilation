@@ -1,18 +1,18 @@
 /*-Renderer* renderer
+ *
+ - *ResourceManager* resMgr
 
--ResourceManager* resMgr
+ +renderHUD(player) : void
 
-+renderHUD(player) : void
+ +renderMinimap(map,players) : void
 
-+renderMinimap(map,players) : void
+ +renderHealthBar(entity) : void
 
-+renderHealthBar(entity) : void
+ +renderSelectionPanel(selected) : void
 
-+renderSelectionPanel(selected) : void
+ +renderProductionQueue(b) : void
 
-+renderProductionQueue(b) : void
-
-+renderConstructionBar(b) : void*/
+ +renderConstructionBar(b) : void*/
 
 #include "UIManager.hpp"
 #include <SDL2/SDL_image.h>
@@ -79,16 +79,16 @@ SDL_Rect UIManager::getHUDBuildingRect() const
 void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool disabled)
 {
     SDL_Color bg  = disabled  ? SDL_Color{20,20,20,120}
-                  : selected  ? SDL_Color{80,80,20,180}
-                              : SDL_Color{30,30,30,160};
+    : selected  ? SDL_Color{80,80,20,180}
+    : SDL_Color{30,30,30,160};
     SDL_Color brd = disabled  ? SDL_Color{70,70,70,180}
-                              : SDL_Color{150,150,150,255};
+    : SDL_Color{150,150,150,255};
     renderer->drawRect(rect, bg,  true);
     renderer->drawRect(rect, brd, false);
 
     SDL_Color col = disabled  ? SDL_Color{80,80,80,180}
-                  : selected  ? SDL_Color{255,220,0,255}
-                              : SDL_Color{200,200,200,255};
+    : selected  ? SDL_Color{255,220,0,255}
+    : SDL_Color{200,200,200,255};
     SDL_Surface* surf = TTF_RenderText_Blended(renderer->getFont(), label, col);
     if (!surf) return;
     SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), surf);
@@ -111,6 +111,10 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 	int width = window->getOptions().width, height = window->getOptions().height;
 
 	SDL_Rect rects[N]; // sera recalculé à chaque frame
+
+    int width = window->getOptions().width, height = window->getOptions().height;
+
+    SDL_Rect rects[N]; // sera recalculé à chaque frame
 
     // Fond
     SDL_Texture* bg = nullptr;
@@ -160,17 +164,18 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
                 if (ev.button.button == SDL_BUTTON_LEFT) {
                     int mx = ev.button.x, my = ev.button.y;
                     for (int i = 0; i < N; i++) {
+                        int mx = ev.motion.x, my = ev.motion.y;
                         if (mx >= rects[i].x && mx <= rects[i].x + rects[i].w &&
                             my >= rects[i].y && my <= rects[i].y + rects[i].h) {
                             sound.play("click");
                             if (i == 2) showOptionsMenu(options, sound);
                             else { result = i; isOpen = false; }
+                                }
                         }
                     }
-                }
-                break;
-			}
-		}
+                    break;
+            }
+        }
         renderer->clear();
         if (bg) renderer->drawTexture(bg, NULL, NULL);
         for (int i = 0; i < N; i++) drawButton(labels[i], rects[i], i == sel,false);
@@ -272,9 +277,9 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
         }
 
         renderer->clear();
-		for (int i = 0; i < M; i++) {
-			bool disabled = (i == 0 && fullscreen); // résolution grisée si fullscreen
-			drawButton(labels[i], rects[i], i == sel && !disabled, disabled);
+        for (int i = 0; i < M; i++) {
+            bool disabled = (i == 0 && fullscreen); // résolution grisée si fullscreen
+            drawButton(labels[i], rects[i], i == sel && !disabled, disabled);
 
             // Valeur à droite
             char val[64] = "";

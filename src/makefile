@@ -1,19 +1,30 @@
 cc    = g++
 flags = -Wall -std=c++17
+
 includes = -I./Frontend/Window \
 	-I./Frontend/Renderer \
 	-I./Frontend/EventManager \
 	-I./Frontend/SelectionManager \
 	-I./Frontend/UIManager \
+	-I./Frontend/Sound \
 	-I./Backend/Map \
 	-I./Backend/Player \
 	-I./Backend/Cell \
 	-I./Backend/Resource \
+	-I./Backend/ResourceManager \
+	-I./Backend/TerrainSprite \
+	-I./Backend/Building \
+	-I./Backend/Entity \
+	-I./Backend/Coordinate \
+	-I./Backend/Unit \
+	-I./Backend/Pathing \
+	-I./Backend/AI \
+	-I./Backend/Combat \
 	-I./Game
 
 # Détection de l'OS
 ifeq ($(OS),Windows_NT)
-	# Windows (MSYS2/MinGW)
+	# Windows MSYS2/MinGW
 	libs = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_mixer
 	exe_ext = .exe
 else
@@ -29,21 +40,27 @@ srcs  = main.cpp \
 	Frontend/EventManager/EventManager.cpp \
 	Frontend/SelectionManager/SelectionManager.cpp \
 	Frontend/UIManager/UIManager.cpp \
+	Frontend/Sound/Sound.cpp \
 	Backend/Map/Map.cpp \
 	Backend/Map/Mountain.cpp \
 	Backend/Map/River.cpp \
 	Backend/Map/Ravine.cpp \
 	Backend/Map/Forest.cpp \
 	Backend/Map/Bush.cpp \
+	Backend/Map/Pathfinding.cpp \
 	Backend/Cell/Cell.cpp \
 	Backend/Player/Player.cpp \
 	Backend/Building/Building.cpp \
 	Backend/Entity/Entity.cpp \
-	Frontend/Sound/Sound.cpp \
 	Backend/Resource/Resource.cpp \
 	Backend/ResourceManager/ResourceManager.cpp \
+	Backend/Pathing/MassPath.cpp \
+	Backend/Pathing/MovementRules.cpp \
+	Backend/Pathing/AIPath.cpp \
+	Backend/AI/EnemyAI.cpp \
+	Backend/Combat/CombatSystem.cpp \
 	Backend/Unit/Unit.cpp \
-	Backend/Map/Pathfinding.cpp
+	Backend/Unit/Collector.cpp
 
 hdrs  = Game/Game.hpp \
 	Frontend/Window/Window.hpp \
@@ -51,16 +68,22 @@ hdrs  = Game/Game.hpp \
 	Frontend/EventManager/EventManager.hpp \
 	Frontend/SelectionManager/SelectionManager.hpp \
 	Frontend/UIManager/UIManager.hpp \
+	Frontend/Sound/Sound.hpp \
 	Backend/Map/Map.hpp \
 	Backend/Player/Player.hpp \
 	Backend/Cell/Cell.hpp \
 	Backend/Building/Building.hpp \
 	Backend/Entity/Entity.hpp \
 	Backend/Coordinate/Coordinate.hpp \
-	Frontend/Sound/Sound.hpp \
-	Backend/Unit/Unit.hpp \
+	Backend/Resource/Resource.hpp \
 	Backend/ResourceManager/ResourceManager.hpp \
-	Backend/Resource/Resource.hpp
+	Backend/Pathing/MassPath.hpp \
+	Backend/Pathing/MovementRules.hpp \
+	Backend/Pathing/AIPath.hpp \
+	Backend/AI/EnemyAI.hpp \
+	Backend/Combat/CombatSystem.hpp \
+	Backend/Unit/Unit.hpp \
+	Backend/Unit/Collector.hpp
 
 exe   = flat_annihilation
 

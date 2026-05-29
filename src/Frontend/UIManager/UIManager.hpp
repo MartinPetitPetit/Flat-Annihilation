@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../Renderer/Renderer.hpp"
 #include "../SelectionManager/SelectionManager.hpp"
 #include "../../Backend/Map/Map.hpp"

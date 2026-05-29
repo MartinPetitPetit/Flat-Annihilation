@@ -1,6 +1,25 @@
 #include "SelectionManager.hpp"
+
 #include <algorithm>
 #include <cmath>
+
+namespace
+{
+    constexpr int LOCAL_PLAYER_TEAM = 0;
+
+    bool isSelectableByLocalPlayer(const Unit* unit)
+    {
+        return unit != nullptr && unit->getTeam() == LOCAL_PLAYER_TEAM;
+    }
+
+    SDL_Point unitScreenPos(const Unit* unit, int offsetX, int offsetY, int scale)
+    {
+        return {
+            offsetX + unit->getPos().getX() * scale + scale / 2,
+            offsetY + unit->getPos().getY() * scale + scale / 2
+        };
+    }
+}
 
 void SelectionManager::startDrag(int x, int y)
 {
@@ -11,88 +30,144 @@ void SelectionManager::startDrag(int x, int y)
 
 void SelectionManager::updateDrag(int x, int y)
 {
-    if (!isDragging) return;
+    if (!isDragging) {
+        return;
+    }
+
     dragRect.x = std::min(x, dragStart.x);
     dragRect.y = std::min(y, dragStart.y);
     dragRect.w = std::abs(x - dragStart.x);
     dragRect.h = std::abs(y - dragStart.y);
 }
 
-// Coordonnées écran d'une unité
-static SDL_Point unitScreenPos(const Unit* u, int offsetX, int offsetY, int scale)
-{
-    return {
-        offsetX + u->getPos().getX() * scale + scale / 2,
-        offsetY + u->getPos().getY() * scale + scale / 2
-    };
-}
-
-void SelectionManager::endDrag(int x, int y, std::vector<Unit*>& units,
-                                int offsetX, int offsetY, int scale)
-{
+void SelectionManager::endDrag(
+    int x,
+    int y,
+    std::vector<Unit*>& units,
+    int offsetX,
+    int offsetY,
+    int scale
+) {
     updateDrag(x, y);
     isDragging = false;
 
-    // Si le rect est trop petit -> clic simple
+    /*
+     * Si le rectangle est trop petit, on considère que c'est un clic simple.
+     */
     if (dragRect.w < 4 && dragRect.h < 4) {
         tryClickSelect(x, y, units, offsetX, offsetY, scale);
         return;
     }
 
-    // Désélectionner tout
-    for (Unit* u : selected) u->setSelected(false);
+    for (Unit* unit : selected) {
+        if (unit != nullptr) {
+            unit->setSelected(false);
+        }
+    }
+
     selected.clear();
 
-    // Sélectionner les unités dans le rect
-    for (Unit* u : units) {
-        SDL_Point p = unitScreenPos(u, offsetX, offsetY, scale);
+    /*
+     * Le joueur humain ne peut sélectionner que ses propres unités.
+     * Les collecteurs et soldats de l'IA restent visibles, mais non contrôlables.
+     */
+    for (Unit* unit : units) {
+        if (!isSelectableByLocalPlayer(unit)) {
+            continue;
+        }
+
+        SDL_Point p = unitScreenPos(unit, offsetX, offsetY, scale);
+
         if (p.x >= dragRect.x && p.x <= dragRect.x + dragRect.w &&
             p.y >= dragRect.y && p.y <= dragRect.y + dragRect.h) {
-            u->setSelected(true);
-            selected.push_back(u);
+            unit->setSelected(true);
+            selected.push_back(unit);
         }
     }
 }
 
-void SelectionManager::tryClickSelect(int x, int y, std::vector<Unit*>& units,
-                                       int offsetX, int offsetY, int scale)
-{
-    // Désélectionner tout
-    for (Unit* u : selected) u->setSelected(false);
+void SelectionManager::tryClickSelect(
+    int x,
+    int y,
+    std::vector<Unit*>& units,
+    int offsetX,
+    int offsetY,
+    int scale
+) {
+    for (Unit* unit : selected) {
+        if (unit != nullptr) {
+            unit->setSelected(false);
+        }
+    }
+
     selected.clear();
 
     int threshold = std::max(8, scale / 2 + 2);
 
-    for (Unit* u : units) {
-        SDL_Point p = unitScreenPos(u, offsetX, offsetY, scale);
+    /*
+     * Le clic simple ignore aussi les unités ennemies.
+     */
+    for (Unit* unit : units) {
+        if (!isSelectableByLocalPlayer(unit)) {
+            continue;
+        }
+
+        SDL_Point p = unitScreenPos(unit, offsetX, offsetY, scale);
         int dx = p.x - x;
         int dy = p.y - y;
+
         if (dx * dx + dy * dy <= threshold * threshold) {
-            u->setSelected(true);
-            selected.push_back(u);
-            break; // un seul par clic simple
+            unit->setSelected(true);
+            selected.push_back(unit);
+            break;
         }
     }
 }
 
 void SelectionManager::deleteSelected(std::vector<std::unique_ptr<Unit>>& units)
 {
-    for (Unit* u : selected) {
-        u->setSelected(false);
+    for (Unit* unit : selected) {
+        if (unit != nullptr) {
+            unit->setSelected(false);
+        }
+
         units.erase(
-            std::remove_if(units.begin(), units.end(),
-                [u](const std::unique_ptr<Unit>& ptr) { return ptr.get() == u; }),
+            std::remove_if(
+                units.begin(),
+                units.end(),
+                [unit](const std::unique_ptr<Unit>& ptr) {
+                    return ptr.get() == unit;
+                }
+            ),
             units.end()
         );
     }
+
     selected.clear();
 }
 
-std::vector<Unit*>& SelectionManager::getSelected()  { return selected;   }
+std::vector<Unit*>& SelectionManager::getSelected()
+{
+    return selected;
+}
+
 void SelectionManager::clearSelection()
 {
-    for (Unit* u : selected) u->setSelected(false);
+    for (Unit* unit : selected) {
+        if (unit != nullptr) {
+            unit->setSelected(false);
+        }
+    }
+
     selected.clear();
 }
-SDL_Rect SelectionManager::getDragRect()   const { return dragRect;   }
-bool     SelectionManager::getIsDragging() const { return isDragging; }
+
+SDL_Rect SelectionManager::getDragRect() const
+{
+    return dragRect;
+}
+
+bool SelectionManager::getIsDragging() const
+{
+    return isDragging;
+}

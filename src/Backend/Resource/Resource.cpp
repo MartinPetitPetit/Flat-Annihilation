@@ -1,6 +1,7 @@
 #include "Resource.hpp"
 #include "../ResourceManager/ResourceManager.hpp"
-#include <cstdlib>
+
+#include <algorithm>
 
 Resource::Resource(ResourceType type, int amount, int maxAmount)
     : type(type), amount(amount), maxAmount(maxAmount)
@@ -9,16 +10,45 @@ Resource::Resource(ResourceType type, int amount, int maxAmount)
         texturePath = "assets/oak_tree.png";
     }
     else if (type == food) {
-        if (amount > 0)
+        if (amount > 0) {
             texturePath = "assets/berry.png";
-        else
+        }
+        else {
             texturePath = "assets/bush.png";
+        }
     }
 }
 
-ResourceType Resource::getResourceType()
+ResourceType Resource::getResourceType() const
 {
     return type;
+}
+
+int Resource::getAmount() const
+{
+    return amount;
+}
+
+int Resource::getMaxAmount() const
+{
+    return maxAmount;
+}
+
+bool Resource::isEmpty() const
+{
+    return amount <= 0;
+}
+
+int Resource::gather(int requestedAmount)
+{
+    if (requestedAmount <= 0 || amount <= 0) {
+        return 0;
+    }
+
+    int taken = std::min(requestedAmount, amount);
+    amount -= taken;
+
+    return taken;
 }
 
 void Resource::render(SDL_Renderer* renderer, SDL_Rect destination)
