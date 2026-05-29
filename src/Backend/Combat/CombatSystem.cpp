@@ -149,11 +149,13 @@ namespace
     }
 }
 
+
 void CombatSystem::update(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,
     std::vector<std::unique_ptr<Unit>>& units,
-    int tickRate
+    int tickRate,
+    Sound* sound
 ) {
     (void)map;
 
@@ -178,6 +180,7 @@ void CombatSystem::update(
         if (unitTarget != nullptr) {
             unitTarget->takeDamage(damage);
             attacker->resetAttackCooldown(tickRate);
+            if (sound) sound->play("attack");
             continue;
         }
 
@@ -186,20 +189,32 @@ void CombatSystem::update(
         if (buildingTarget != nullptr) {
             buildingTarget->takeDamage(damage);
             attacker->resetAttackCooldown(tickRate);
+            if (sound) sound->play("attack");
         }
     }
 }
 
+// Par :
 bool CombatSystem::removeDeadEntities(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,
-    std::vector<std::unique_ptr<Unit>>& units
-) {
+    std::vector<std::unique_ptr<Unit>>& units,
+    Sound* sound
+)
+ {
     bool removed = false;
 
     removeDeadUnitsFromMap(map, units);
 
     auto oldUnitCount = units.size();
+
+    if (sound) {
+        for (const auto& unit : units) {
+            if (unit && !unit->isAlive()) {
+                sound->play("death");
+            }
+        }
+    }
 
     units.erase(
         std::remove_if(

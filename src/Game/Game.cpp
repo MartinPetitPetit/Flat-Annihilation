@@ -155,6 +155,9 @@ void Game::initializeManagers()
     ptr_sound = std::make_unique<Sound>();
     ptr_sound->load("click",  "sounds/rhoo.wav");
     ptr_sound->load("hover",  "sounds/ptiou.wav");
+    ptr_sound->load("attack", "sounds/attack.wav");
+    ptr_sound->load("death",  "sounds/death.wav");
+    ptr_sound->load("spawn",  "sounds/spawn.wav");
     ptr_sound->loadMusic("sounds/Flat-construction-v2.wav");
     ptr_sound->playMusic();
     ptr_sound->setMusicVolume(200);
@@ -655,10 +658,10 @@ void Game::updateCombat()
         ptr_map->setGrid(),
         ptr_players,
         ptr_units,
-        TICK_RATE
+        TICK_RATE,
+        ptr_sound.get()
     );
 }
-
 void Game::cleanupDestroyedEntities()
 {
     bool hasDeadUnit = false;
@@ -680,10 +683,12 @@ void Game::cleanupDestroyedEntities()
         ptr_uiManager->clearBuildingSelection();
     }
 
+
     CombatSystem::removeDeadEntities(
         ptr_map->setGrid(),
         ptr_players,
-        ptr_units
+        ptr_units,
+        ptr_sound.get()
     );
 }
 
@@ -746,6 +751,8 @@ bool Game::spawnPendingUnitFromBuilding(Building* building)
     }
 
     ptr_map->setGrid()[spawnX][spawnY].unit = ptr_units.back().get();
+
+    if (ptr_sound) ptr_sound->play("spawn");
 
     building->consumeSpawn();
     return true;
