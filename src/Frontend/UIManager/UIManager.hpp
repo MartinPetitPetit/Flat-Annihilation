@@ -37,6 +37,7 @@ public:
     void         selectBuilding(Building* b);
     void         clearBuildingSelection();
     bool pendingProduceUnit { false };
+    bool pendingProduceCollector {false};
 
 void renderHUD(const Player* localPlayer,
                const std::vector<Unit*>& selectedUnits = {});

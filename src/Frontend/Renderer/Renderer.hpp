@@ -6,6 +6,7 @@
 #include "../Window/Window.hpp"
 #include "../../Backend/Map/Map.hpp"
 
+
 class Renderer {
 	public:
 		Renderer(Window& window, const char* font_path);

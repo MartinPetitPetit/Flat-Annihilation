@@ -108,13 +108,9 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     const char* labels[N] = { "generate map", "solo vs ia", "options" };
     int btnW = 320, btnH = 50;
 
-	int width = window->getOptions().width, height = window->getOptions().height;
-
 	SDL_Rect rects[N]; // sera recalculé à chaque frame
 
     int width = window->getOptions().width, height = window->getOptions().height;
-
-    SDL_Rect rects[N]; // sera recalculé à chaque frame
 
     // Fond
     SDL_Texture* bg = nullptr;
@@ -162,7 +158,6 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 				break;
             case SDL_MOUSEBUTTONDOWN:
                 if (ev.button.button == SDL_BUTTON_LEFT) {
-                    int mx = ev.button.x, my = ev.button.y;
                     for (int i = 0; i < N; i++) {
                         int mx = ev.motion.x, my = ev.motion.y;
                         if (mx >= rects[i].x && mx <= rects[i].x + rects[i].w &&
