@@ -1,67 +1,38 @@
 #pragma once
-
 #include <SDL2/SDL_image.h>
-
 #include "../Resource/Resource.hpp"
+#include <string>
+#include "ResourceManager.hpp"
+class Unit; // forward declaration to avoid circular dependency
 
-
-
-
-/*
- * ============================================================
- * forward declaration
- * ============================================================
- */
-
-class Unit;
-
-/*
- * ============================================================
- * TERRAIN LAYER
- * ============================================================
- */
-
-// Ground layer.
 enum TERRAIN {
-	Plain,      // Basic terrain.
-	Montain,   // Mountain terrain.
-	Lake,      // Lake water.
-	River,     // River water.
-	Bush,      // Legacy terrain bush. Prefer RESOURCE::BushResource.
-	ravine     // Cracked terrain.
+    Plain,
+    Montain,
+    Lake,
+    River,
+    Bush,
+    ravine
 };
 
-/*
- * ============================================================
- * STRUCTURE LAYER
- * ============================================================
- */
-
-// Building layer.
-enum STRUCTURE {
-	None_Struct,
-	Usine,
-	Production,
-};
-
-/*
- * ============================================================
- * CELL
- * ============================================================
- */
 
 class Cell
 {
-	public:
+    public:
+        Cell();
+        virtual ~Cell();
+        void render(SDL_Renderer* renderer, SDL_Rect destination);
+        void setTexturePath(std::string texturePath);
 
-		Cell();
-		virtual ~Cell();
+        TERRAIN   type_terrain;
+        Resource  *resource;
+        Unit      *unit;
 
-		TERRAIN type_terrain;
-		STRUCTURE type_struct;
-		Resource *resource;
-		Unit *unit;
+        bool walkable;
+        bool occupied;
+        int buildingID    { -1 };
+        int buildingOwner { -1 };
 
-		bool walkable;
-		bool occupied;
+    private:
+
+        std::string  texturePath;
 };

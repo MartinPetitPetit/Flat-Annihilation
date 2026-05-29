@@ -9,12 +9,24 @@ class SelectionManager {
     SDL_Rect           dragRect  {};
     bool               isDragging{ false };
     Vector2i           dragStart {};
+
 public:
     void startDrag(int x, int y);
     void updateDrag(int x, int y);
-    void endDrag(int x, int y, std::vector<Unit*>& units);
+
+    // Sélection par drag sur la liste d'unités de la scène
+    void endDrag(int x, int y, std::vector<Unit*>& units,
+                 int offsetX, int offsetY, int scale);
+
+    // Clic simple
+    void tryClickSelect(int x, int y, std::vector<Unit*>& units,
+                        int offsetX, int offsetY, int scale);
+
+    // Supprime les unités sélectionnées de la scène
+    void deleteSelected(std::vector<std::unique_ptr<Unit>>& units);
+
     std::vector<Unit*>& getSelected();
     void clearSelection();
-    SDL_Rect getDragRect()  const;
+    SDL_Rect getDragRect()   const;
     bool     getIsDragging() const;
 };

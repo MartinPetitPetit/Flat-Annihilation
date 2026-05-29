@@ -1,16 +1,18 @@
 #include "Renderer.hpp"
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_surface.h>
-
+#include "../../Backend/ResourceManager/ResourceManager.hpp"
 
 Renderer::Renderer(Window& window, const char* font_path)
 {
     sdlRenderer = SDL_CreateRenderer(
         window.getSDLWindow(), -1,
-        SDL_RENDERER_ACCELERATED
+                                     SDL_RENDERER_ACCELERATED
     );
+    ResourceManager::getInstance().setRenderer(sdlRenderer);
+
     font = TTF_OpenFont(font_path, 18);
+
 }
+
 
 Renderer::~Renderer()
 {
@@ -84,149 +86,126 @@ void Renderer::drawText(const char* text, int x, int y)
     SDL_DestroyTexture(tex);
 }
 
-void Renderer::drawMap(const MAP &map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
+void Renderer::drawMap(const MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
 {
-
     int realWidth = static_cast<int>(map.size());
-
-    if (realWidth == 0) {
-        return;
-    }
-
+    if (realWidth == 0) return;
     int realHeight = static_cast<int>(map[0].size());
+    if (realHeight == 0) return;
 
-    if (realHeight == 0) {
-        return;
-    }
+    if (MAP_W > realWidth)  MAP_W = realWidth;
+    if (MAP_H > realHeight) MAP_H = realHeight;
 
-    if (MAP_W > realWidth) {
-        MAP_W = realWidth;
-    }
+    // -------------------------------------------------------
+    // LOD : choisit la taille du bloc selon le zoom
+    // -------------------------------------------------------
+    int blockSize = 1;
+    if (scale <= 1) blockSize = 4;
+    else if (scale <= 3) blockSize = 2;
 
-    if (MAP_H > realHeight) {
-        MAP_H = realHeight;
-    }
+    bool drawResources = (scale >= 4);
+    bool drawGrid      = (scale >= 8);
 
-    for (int x = 0; x < MAP_W; x++) {
-        for (int y = 0; y < MAP_H; y++) {
+    // -------------------------------------------------------
+    // Helper : couleur de terrain
+    // -------------------------------------------------------
+    auto terrainColor = [](TERRAIN t, int s) -> SDL_Color {
+        switch (t) {
+            case Plain:   return { 34, 139, 34, 255 };
+            case Montain: return { 139, 69, 19, 255 };
+            case Lake:    return { 0,   0, 180, 255 };
+            case River:   return { 0, 120, 255, 255 };
+            case Bush:    return { 0, 180,   0, 255 };
+            case ravine:
+                if (s <= 4) return {  0,  0,  0, 255 };
+                if (s <= 8) return { 25, 25, 25, 255 };
+                return              { 50, 50, 50, 255 };
+            default:      return {   0,  0,  0, 255 };
+        }
+    };
 
+    // -------------------------------------------------------
+    // Rendu par blocs
+    // -------------------------------------------------------
+    for (int x = 0; x < MAP_W; x += blockSize) {
+        for (int y = 0; y < MAP_H; y += blockSize) {
+
+            // --- Calcul du rect écran du bloc ---
             SDL_Rect cell;
             cell.x = offsetX + x * scale;
             cell.y = offsetY + y * scale;
-            cell.w = scale;
-            cell.h = scale;
+            cell.w = scale * blockSize;
+            cell.h = scale * blockSize;
 
-            if (cell.x + cell.w < 0 || cell.x > options.width) {
-                continue;
+            // Culling
+            if (cell.x + cell.w < 0 || cell.x > options.width)  continue;
+            if (cell.y + cell.h < 0 || cell.y > options.height) continue;
+
+            // -----------------------------------------------
+            // LOD élevé (scale >= 4) : une cellule = un rect
+            // -----------------------------------------------
+            if (blockSize == 1) {
+                SDL_Color color = terrainColor(map[x][y].type_terrain, scale);
+                drawRect(cell, color, true);
+
+                // Ressources
+                if (drawResources && map[x][y].resource != nullptr) {
+                    SDL_Rect resourceRect = {
+                        cell.x + cell.w / 4,
+                        cell.y + cell.h / 4,
+                        std::max(1, cell.w / 2),
+                        std::max(1, cell.h / 2)
+                    };
+                    switch (map[x][y].resource->getResourceType()) {
+                        case wood:
+                            map[x][y].resource->render(sdlRenderer, resourceRect);
+                            break;
+                        case stone:
+                            drawRect(resourceRect, { 120, 120, 120, 255 }, true);
+                            break;
+                        case gold:
+                            drawRect(resourceRect, { 255, 215,   0, 255 }, true);
+                            break;
+                        case food:
+                            map[x][y].resource->render(sdlRenderer, resourceRect);
+                            break;
+                        default: break;
+                    }
+                }
+
+                // Grille
+                if (drawGrid)
+                    drawRect(cell, { 0, 0, 0, 40 }, false);
             }
 
-            if (cell.y + cell.h < 0 || cell.y > options.height) {
-                continue;
-            }
+            // -----------------------------------------------
+            // LOD bas (blocs 2x2 ou 4x4) : couleur dominante
+            // -----------------------------------------------
+            else {
+                // On compte les terrains dans le bloc et on prend le dominant
+                int counts[6] = {0,0,0,0,0,0};
+                int bx_max = std::min(x + blockSize, MAP_W);
+                int by_max = std::min(y + blockSize, MAP_H);
 
-            /*
-             * ==================================================
-             * PART 1: TERRAIN
-             * ==================================================
-             */
+                for (int bx = x; bx < bx_max; bx++)
+                    for (int by = y; by < by_max; by++)
+                        counts[(int)map[bx][by].type_terrain]++;
 
-            SDL_Color color;
-
-            switch (map[x][y].type_terrain) {
-                case Plain:
-                    color = { 0, 255, 0, 255 };
-                    break;
-
-                case Montain:
-                    color = { 139, 69, 19, 255 };
-                    break;
-
-                case Lake:
-                    color = { 0, 0, 180, 255 };
-                    break;
-
-                case River:
-                    color = { 0, 120, 255, 255 };
-                    break;
-
-                case Bush:
-                    color = { 0, 180, 0, 255 };
-                    break;
-
-                case ravine:
-                    if (scale <= 4) {
-                        color = { 0, 0, 0, 255 };
+                TERRAIN dominant = Plain;
+                int     best     = 0;
+                for (int t = 0; t < 6; t++) {
+                    if (counts[t] > best) {
+                        best     = counts[t];
+                        dominant = static_cast<TERRAIN>(t);
                     }
-                    else if (scale <= 8) {
-                        color = { 25, 25, 25, 255 };
-                    }
-                    else {
-                        color = { 50, 50, 50, 255 };
-                    }
-                    break;
+                }
 
-                default:
-                    color = { 0, 0, 0, 255 };
-                    break;
-            }
-
-            drawRect(cell, color, true);
-
-            /*
-             * ==================================================
-             * PART 2: RESOURCE OVER TERRAIN
-             * ==================================================
-             */
-
-            SDL_Rect resourceRect;
-            resourceRect.x = cell.x + cell.w / 4;
-            resourceRect.y = cell.y + cell.h / 4;
-            resourceRect.w = std::max(1, cell.w / 2);
-            resourceRect.h = std::max(1, cell.h / 2);
-			if (map[x][y].resource != nullptr) {
-				switch (map[x][y].resource->getResourceType()) {
-					case wood:
-
-						map[x][y].resource->render(this->sdlRenderer, resourceRect);
-						break;
-
-					case stone:
-						drawRect(resourceRect, { 120, 120, 120, 255 }, true);
-						break;
-
-					case gold:
-						drawRect(resourceRect, { 255, 215, 0, 255 }, true);
-						break;
-
-					// case iron:
-					//     drawRect(resourceRect, { 90, 90, 90, 255 }, true);
-					//     break;
-
-					// case Sapling:
-					//     drawRect(resourceRect, { 0, 180, 60, 255 }, true);
-					//     break;
-
-					case food:
-						map[x][y].resource->render(this->sdlRenderer, resourceRect);
-						break;
-
-					default:
-						break;
-				}
-			}
-            /*
-             * ==================================================
-             * PART 3: OPTIONAL GRID
-             * ==================================================
-             */
-
-            if (scale >= 8) {
-                drawRect(cell, { 0, 0, 0, 40 }, false);
+                SDL_Color color = terrainColor(dominant, scale);
+                drawRect(cell, color, true);
             }
         }
     }
 }
-
 void Renderer::applyZoom(int mouseX, int mouseY, int direction)
 {
     int oldScale = scale;

@@ -5,6 +5,8 @@
 #include "../Cell/Cell.hpp"
 #include "../Unit/Unit.hpp"
 #include "../Resource/Resource.hpp"
+#include <memory>
+#include "../Coordinate/Coordinate.hpp"
 
 /*
  * ============================================================
@@ -50,6 +52,7 @@ class Map
 		};
 
 		const MAP& getGrid() const;
+		MAP& setGrid();
 
 	private:
 		MAP grid;
@@ -232,6 +235,35 @@ struct RIVER {
     int turn_chance;
 };
 
+
+/*
+ * ============================================================
+ * STARTING BASE CREATION
+ * ============================================================
+ */
+
+class Player;
+
+/*
+ * Côté de départ utilisé par la carte pour créer les bases initiales.
+ */
+enum class StartBaseSide {
+    Left,
+    Right,
+};
+
+/*
+ * Crée une base initiale directement depuis le module Map.
+ * La base contient un Town Center et un nombre configurable de collecteurs.
+ */
+bool create_start_base(
+    MAP& map,
+    Player& player,
+    std::vector<std::unique_ptr<Unit>>& units,
+    StartBaseSide side,
+    int collectorCount = 5
+);
+
 /*
  * ============================================================
  * MAP CREATION AND GENERAL UTILITIES
@@ -321,3 +353,23 @@ void paint_bush_patch(MAP& map, int cx, int cy, int radius, const GenerationConf
 
 void create_bush_patches(MAP& map, const GenerationConfig& cfg);
 void create_scattered_bushes(MAP& map, const GenerationConfig& cfg);
+
+/*
+ * ============================================================
+ * PATHFINDING
+ * ============================================================
+ */
+
+std::vector<Coordinate> findPath(
+    const MAP& map,
+    Coordinate start,
+    Coordinate goal,
+    const std::vector<std::unique_ptr<class Unit>>& units,
+    int selfId
+);
+
+std::vector<Coordinate> formationDestinations(
+    const MAP& map,
+    Coordinate center,
+    int count
+);

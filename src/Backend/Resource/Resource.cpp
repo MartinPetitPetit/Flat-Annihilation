@@ -1,43 +1,62 @@
 #include "Resource.hpp"
-#include <SDL2/SDL_render.h>
+#include "../ResourceManager/ResourceManager.hpp"
+
+#include <algorithm>
 
 Resource::Resource(ResourceType type, int amount, int maxAmount)
+    : type(type), amount(amount), maxAmount(maxAmount)
 {
-	this->amount = amount;
-	this->maxAmount = maxAmount;
-	this->type = type;
-	
-	if (type == wood)
-	{
-		int roll = std::rand() % 100;
-		
-		// selection aléatoire du sprite de l'arbre
-		// this->texture = ???
-
-		this->surface = IMG_Load("assets/oak_tree.png"); 
-
-        // SDL_FreeSurface(surface);
-	}
-	else if (type == food) {
-		if (this->amount > 0) this->surface = IMG_Load("assets/berry.png");
-		else this->surface = IMG_Load("assets/bush.png"); 
-	}
+    if (type == wood) {
+        texturePath = "assets/oak_tree.png";
+    }
+    else if (type == food) {
+        if (amount > 0) {
+            texturePath = "assets/berry.png";
+        }
+        else {
+            texturePath = "assets/bush.png";
+        }
+    }
 }
 
-Resource::~Resource()
+ResourceType Resource::getResourceType() const
 {
-	SDL_FreeSurface(this->surface);
-	SDL_DestroyTexture(this->texture);
+    return type;
 }
 
-
-ResourceType Resource::getResourceType()
+int Resource::getAmount() const
 {
-	return this->type;
+    return amount;
 }
 
-void Resource::render(SDL_Renderer *renderer, SDL_Rect destination)
+int Resource::getMaxAmount() const
 {
-	if (this->texture == nullptr) this->texture = SDL_CreateTextureFromSurface(renderer, this->surface); 
-	SDL_RenderCopy(renderer, this->texture, NULL, &destination);
+    return maxAmount;
+}
+
+bool Resource::isEmpty() const
+{
+    return amount <= 0;
+}
+
+int Resource::gather(int requestedAmount)
+{
+    if (requestedAmount <= 0 || amount <= 0) {
+        return 0;
+    }
+
+    int taken = std::min(requestedAmount, amount);
+    amount -= taken;
+
+    return taken;
+}
+
+void Resource::render(SDL_Renderer* renderer, SDL_Rect destination)
+{
+    if (texturePath.empty()) return;
+
+    SDL_Texture* tex = ResourceManager::getInstance().getTexture(texturePath);
+    if (!tex) return;
+
+    SDL_RenderCopy(renderer, tex, nullptr, &destination);
 }

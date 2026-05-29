@@ -1,33 +1,34 @@
 #pragma once
 
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <SDL2/SDL_surface.h>
+#include <string>
 
-enum ResourceType {food, wood, stone, gold};
+/*
+ * Types de ressources utilisés par la carte et par le collecteur.
+ */
+enum ResourceType { food, wood, stone, gold };
 
+class Resource {
+public:
+    Resource(ResourceType type, int amount, int maxAmount);
+    virtual ~Resource() = default;
 
+    void render(SDL_Renderer* renderer, SDL_Rect destination);
 
-class Resource
-{
+    ResourceType getResourceType() const;
+    int getAmount() const;
+    int getMaxAmount() const;
+    bool isEmpty() const;
 
-    public:
+    /*
+     * Retire une quantité disponible et retourne ce qui a vraiment été collecté.
+     */
+    int gather(int requestedAmount);
 
-		Resource(ResourceType type, int amount, int maxAmount);
-
-        virtual ~Resource();
-
-		void render(SDL_Renderer *renderer, SDL_Rect destination);
-
-		ResourceType getResourceType();
-
-    private:
-
-        ResourceType type;
-        int amount;
-        int maxAmount;
-
-		SDL_Surface *surface;
-		SDL_Texture *texture;
-        
-    protected:
+private:
+    ResourceType type;
+    int          amount;
+    int          maxAmount;
+    std::string  texturePath;
 };
