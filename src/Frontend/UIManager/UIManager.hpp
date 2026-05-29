@@ -22,6 +22,8 @@ class UIManager {
     bool         inBuildingMode       { false };
     BuildingType selectedBuildingType { BuildingType::TownCenter };
 
+    // Bâtiment sélectionné
+    Building*    selectedBuilding     { nullptr };
 public:
     UIManager(Renderer& renderer, Window& window);
 
@@ -30,6 +32,10 @@ public:
     bool isInBuildingMode() const;
     BuildingType getSelectedBuildingType() const;
     void cancelBuildingMode();
+    Building*    getSelectedBuilding() const;
+    void         selectBuilding(Building* b);
+    void         clearBuildingSelection();
+    bool pendingProduceUnit { false };
 
 void renderHUD(const Player* localPlayer,
                const std::vector<Unit*>& selectedUnits = {});

@@ -47,7 +47,8 @@ void EventManager::onMouseDown(int x, int y, int btn)
             pendingBuild  = true;
             return;
         }
-
+        dragStartLeftX = x;
+        dragStartLeftY = y;
         selMgr->startDrag(x, y);
     }
 
@@ -85,6 +86,15 @@ void EventManager::onMouseUp(int x, int y, int btn)
                         renderer->getOffsetX(),
                         renderer->getOffsetY(),
                         renderer->getScale());
+
+        // Clic simple (pas un vrai drag)
+        int dx = x - dragStartLeftX;
+        int dy = y - dragStartLeftY;
+        if (dx * dx + dy * dy < 16) {
+            pendingBuildingSelectX = x;
+            pendingBuildingSelectY = y;
+            pendingBuildingSelect  = true;
+        }
     }
     if (btn == SDL_BUTTON_RIGHT)
         dragging = false;
