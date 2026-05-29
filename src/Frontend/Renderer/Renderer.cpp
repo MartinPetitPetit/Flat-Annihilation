@@ -1,5 +1,5 @@
 #include "Renderer.hpp"
-#include "../../Backend/ResourceManager/ResourceManager.hpp"
+
 
 Renderer::Renderer(Window& window, const char* font_path)
 {

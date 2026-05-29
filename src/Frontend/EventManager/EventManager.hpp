@@ -8,6 +8,7 @@
 #include "../Renderer/Renderer.hpp"
 #include "../UIManager/UIManager.hpp"
 #include "../../Backend/Unit/Unit.hpp"
+#include "../../Backend/ResourceManager/ResourceManager.hpp"
 
 class EventManager
 {

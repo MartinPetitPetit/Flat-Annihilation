@@ -1,11 +1,5 @@
 #include "EventManager.hpp"
 
-<<<<<<< HEAD
-EventManager::EventManager(SelectionManager& s, Renderer& r,
-                           UIManager& u,
-                           std::vector<std::unique_ptr<Unit>>& unitList)
-    : selMgr(&s), renderer(&r), uiManager(&u), units(&unitList) {}
-=======
 EventManager::EventManager(
     SelectionManager& s,
     Renderer& r,
@@ -15,7 +9,6 @@ EventManager::EventManager(
     : selMgr(&s), renderer(&r), uiManager(&u), units(&unitList)
 {
 }
->>>>>>> origin/ptn-de-vibe-coding
 
 void EventManager::pollEvents()
 {
@@ -66,13 +59,7 @@ bool EventManager::isAttackMoveModifierPressed() const
 void EventManager::onMouseDown(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-<<<<<<< HEAD
         if (uiManager->handleHUDClick(x, y)) return;
-=======
-        if (uiManager->handleHUDClick(x, y)) {
-            return;
-        }
->>>>>>> origin/ptn-de-vibe-coding
 
         if (uiManager->isInBuildingMode()) {
             pendingBuildX = x;
@@ -80,8 +67,6 @@ void EventManager::onMouseDown(int x, int y, int btn)
             pendingBuild  = true;
             return;
         }
-<<<<<<< HEAD
-=======
 
         /*
          * A + clic gauche : ordre offensif.
@@ -99,21 +84,14 @@ void EventManager::onMouseDown(int x, int y, int btn)
             return;
         }
 
->>>>>>> origin/ptn-de-vibe-coding
         dragStartLeftX = x;
         dragStartLeftY = y;
         selMgr->startDrag(x, y);
     }
 
     if (btn == SDL_BUTTON_RIGHT) {
-<<<<<<< HEAD
-        // Si des unités sont sélectionnées → ordre de déplacement
-        if (!selMgr->getSelected().empty()) {
-            // Convertir position écran → cellule
-=======
         // Si des unités sont sélectionnées → ordre de déplacement manuel.
         if (!selMgr->getSelected().empty()) {
->>>>>>> origin/ptn-de-vibe-coding
             int cellX = (x - renderer->getOffsetX()) / renderer->getScale();
             int cellY = (y - renderer->getOffsetY()) / renderer->getScale();
 
@@ -123,11 +101,7 @@ void EventManager::onMouseDown(int x, int y, int btn)
             return;
         }
 
-<<<<<<< HEAD
-        // Sinon → déplacer la caméra
-=======
         // Sinon → déplacer la caméra.
->>>>>>> origin/ptn-de-vibe-coding
         uiManager->cancelBuildingMode();
         dragging         = true;
         dragStartX       = x;
@@ -140,20 +114,6 @@ void EventManager::onMouseDown(int x, int y, int btn)
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-<<<<<<< HEAD
-        // Collecter les raw pointers
-        std::vector<Unit*> rawUnits;
-        for (auto& u : *units) rawUnits.push_back(u.get());
-
-        selMgr->endDrag(x, y, rawUnits,
-                        renderer->getOffsetX(),
-                        renderer->getOffsetY(),
-                        renderer->getScale());
-
-        // Clic simple (pas un vrai drag)
-        int dx = x - dragStartLeftX;
-        int dy = y - dragStartLeftY;
-=======
         if (leftClickConsumedByCommand) {
             leftClickConsumedByCommand = false;
             return;
@@ -178,7 +138,6 @@ void EventManager::onMouseUp(int x, int y, int btn)
         int dx = x - dragStartLeftX;
         int dy = y - dragStartLeftY;
 
->>>>>>> origin/ptn-de-vibe-coding
         if (dx * dx + dy * dy < 16) {
             pendingBuildingSelectX = x;
             pendingBuildingSelectY = y;
@@ -212,19 +171,9 @@ void EventManager::onMouseWheel(int x, int y, int direction)
 
 void EventManager::onKeyDown(SDL_Keycode key)
 {
-<<<<<<< HEAD
     if (key == SDLK_ESCAPE) quit = true;
-=======
-    if (key == SDLK_ESCAPE) {
-        quit = true;
-    }
->>>>>>> origin/ptn-de-vibe-coding
 
     if (key == SDLK_DELETE || key == SDLK_KP_PERIOD) {
         selMgr->deleteSelected(*units);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/ptn-de-vibe-coding
