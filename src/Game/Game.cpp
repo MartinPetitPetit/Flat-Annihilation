@@ -765,6 +765,7 @@ void Game::renderFrame()
 
 void Game::renderWorld()
 {
+    DISPLAY_OPTIONS options = this->ptr_window->getOptions();
     ptr_renderer->drawMap(
         ptr_map->getGrid(),
         MAP_W,
