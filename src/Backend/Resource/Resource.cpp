@@ -7,14 +7,14 @@ Resource::Resource(ResourceType type, int amount, int maxAmount)
     : type(type), amount(amount), maxAmount(maxAmount)
 {
     if (type == wood) {
-        texturePath = "assets/oak_tree.png";
+        texturePath = "assets/terrain/resources/oak_tree.png";
     }
     else if (type == food) {
         if (amount > 0) {
-            texturePath = "assets/berry.png";
+            texturePath = "assets/terrain/resources/berry.png";
         }
         else {
-            texturePath = "assets/bush.png";
+            texturePath = "assets/terrain/resources/bush.png";
         }
     }
 }
@@ -53,10 +53,15 @@ int Resource::gather(int requestedAmount)
 
 void Resource::render(SDL_Renderer* renderer, SDL_Rect destination)
 {
-    if (texturePath.empty()) return;
+    if (texturePath.empty()) {
+        return;
+    }
 
     SDL_Texture* tex = ResourceManager::getInstance().getTexture(texturePath);
-    if (!tex) return;
+
+    if (!tex) {
+        return;
+    }
 
     SDL_RenderCopy(renderer, tex, nullptr, &destination);
 }

@@ -1,6 +1,91 @@
 #include "Sound.hpp"
 #include <iostream>
 #include <algorithm>
+#include <string>
+#include <vector>
+#include <filesystem>
+
+namespace
+{
+    std::string filenameOnly(const std::string& path)
+    {
+        return std::filesystem::path(path).filename().string();
+    }
+
+    std::vector<std::string> buildAudioCandidates(const std::string& path)
+    {
+        const std::string file = filenameOnly(path);
+
+        std::vector<std::string> candidates;
+
+        /*
+         * On garde le chemin demandé en premier.
+         * Ensuite, on teste uniquement les emplacements audio connus.
+         * Cela évite qu'une recherche trop large charge un mauvais fichier.
+         */
+        candidates.push_back(path);
+        candidates.push_back("assets/sounds/" + file);
+        candidates.push_back("sounds/" + file);
+        candidates.push_back("src/sounds/" + file);
+        candidates.push_back("src/assets/sounds/" + file);
+
+        /*
+         * Cas où l'exécutable est lancé depuis build/bin.
+         */
+        candidates.push_back("../assets/sounds/" + file);
+        candidates.push_back("../../assets/sounds/" + file);
+        candidates.push_back("../sounds/" + file);
+        candidates.push_back("../../sounds/" + file);
+
+        return candidates;
+    }
+
+    Mix_Chunk* loadChunkFromKnownAudioPaths(const std::string& path)
+    {
+        std::vector<std::string> candidates = buildAudioCandidates(path);
+
+        for (const std::string& candidate : candidates) {
+            Mix_Chunk* chunk = Mix_LoadWAV(candidate.c_str());
+
+            if (chunk != nullptr) {
+                return chunk;
+            }
+        }
+
+        std::cerr << "Erreur chargement " << path << ": " << Mix_GetError() << "\n";
+        std::cerr << "Chemins testés:";
+
+        for (const std::string& candidate : candidates) {
+            std::cerr << " " << candidate;
+        }
+
+        std::cerr << "\n";
+        return nullptr;
+    }
+
+    Mix_Music* loadMusicFromKnownAudioPaths(const std::string& path)
+    {
+        std::vector<std::string> candidates = buildAudioCandidates(path);
+
+        for (const std::string& candidate : candidates) {
+            Mix_Music* loadedMusic = Mix_LoadMUS(candidate.c_str());
+
+            if (loadedMusic != nullptr) {
+                return loadedMusic;
+            }
+        }
+
+        std::cerr << "Erreur chargement musique " << path << ": " << Mix_GetError() << "\n";
+        std::cerr << "Chemins testés:";
+
+        for (const std::string& candidate : candidates) {
+            std::cerr << " " << candidate;
+        }
+
+        std::cerr << "\n";
+        return nullptr;
+    }
+}
 
 Sound::Sound()
 {
@@ -12,9 +97,8 @@ Sound::Sound()
 
 bool Sound::load(const std::string& name, const std::string& path)
 {
-    Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
+    Mix_Chunk* chunk = loadChunkFromKnownAudioPaths(path);
     if (!chunk) {
-        std::cerr << "Erreur chargement " << path << ": " << Mix_GetError() << "\n";
         return false;
     }
     samples[name] = chunk;
@@ -39,17 +123,18 @@ void Sound::setVolume(int vol)
 
 Sound::~Sound()
 {
-    for (auto& [name, chunk] : samples)
+    for (auto& [name, chunk] : samples) {
+        (void)name;
         Mix_FreeChunk(chunk);
+    }
     if (music) Mix_FreeMusic(music);
     Mix_CloseAudio();
 }
 
 bool Sound::loadMusic(const std::string& path)
 {
-    music = Mix_LoadMUS(path.c_str());
+    music = loadMusicFromKnownAudioPaths(path);
     if (!music) {
-        std::cerr << "Erreur chargement musique " << path << ": " << Mix_GetError() << "\n";
         return false;
     }
     return true;

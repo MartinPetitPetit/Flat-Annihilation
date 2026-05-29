@@ -1,5 +1,68 @@
 #include "Renderer.hpp"
+#include "../../Backend/ResourceManager/ResourceManager.hpp"
 
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <vector>
+
+namespace
+{
+    void addCandidate(std::vector<std::string>& candidates, const std::string& path)
+    {
+        if (path.empty()) {
+            return;
+        }
+
+        for (const std::string& candidate : candidates) {
+            if (candidate == path) {
+                return;
+            }
+        }
+
+        candidates.push_back(path);
+    }
+
+    TTF_Font* openFontWithFallbacks(const char* fontPath, int size)
+    {
+        std::vector<std::string> candidates;
+
+        if (fontPath != nullptr) {
+            std::string basePath(fontPath);
+            addCandidate(candidates, basePath);
+            addCandidate(candidates, "src/" + basePath);
+            addCandidate(candidates, "../" + basePath);
+            addCandidate(candidates, "../../" + basePath);
+        }
+
+        addCandidate(candidates, "assets/fonts/Starjedi.ttf");
+        addCandidate(candidates, "assets/Starjedi.ttf");
+        addCandidate(candidates, "Starjedi.ttf");
+        addCandidate(candidates, "src/assets/fonts/Starjedi.ttf");
+        addCandidate(candidates, "src/assets/Starjedi.ttf");
+        addCandidate(candidates, "src/Starjedi.ttf");
+        addCandidate(candidates, "../assets/fonts/Starjedi.ttf");
+        addCandidate(candidates, "../assets/Starjedi.ttf");
+        addCandidate(candidates, "../../assets/fonts/Starjedi.ttf");
+        addCandidate(candidates, "../../assets/Starjedi.ttf");
+
+        for (const std::string& candidate : candidates) {
+            TTF_Font* loadedFont = TTF_OpenFont(candidate.c_str(), size);
+
+            if (loadedFont != nullptr) {
+                return loadedFont;
+            }
+        }
+
+        std::cerr << "Renderer: impossible de charger la police. Chemins testés:";
+        for (const std::string& candidate : candidates) {
+            std::cerr << " " << candidate;
+        }
+        std::cerr << "\n";
+
+        return nullptr;
+    }
+}
 
 Renderer::Renderer(Window& window, const char* font_path)
 {
@@ -9,8 +72,7 @@ Renderer::Renderer(Window& window, const char* font_path)
     );
     ResourceManager::getInstance().setRenderer(sdlRenderer);
 
-    font = TTF_OpenFont(font_path, 18);
-
+    font = openFontWithFallbacks(font_path, 18);
 }
 
 

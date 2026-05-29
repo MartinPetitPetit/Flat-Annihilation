@@ -153,17 +153,17 @@ void Game::initializeSDL()
 void Game::initializeManagers()
 {
     ptr_sound = std::make_unique<Sound>();
-    ptr_sound->load("click",  "sounds/rhoo.wav");
-    ptr_sound->load("hover",  "sounds/ptiou.wav");
-    ptr_sound->load("attack", "sounds/attack.wav");
-    ptr_sound->load("death",  "sounds/death.wav");
-    ptr_sound->load("spawn",  "sounds/spawn.wav");
-    ptr_sound->loadMusic("sounds/Flat-construction-v2.wav");
+    ptr_sound->load("click",  "assets/sounds/rhoo.wav");
+    ptr_sound->load("hover",  "assets/sounds/ptiou.wav");
+    ptr_sound->load("attack", "assets/sounds/attack.wav");
+    ptr_sound->load("death",  "assets/sounds/death.wav");
+    ptr_sound->load("spawn",  "assets/sounds/spawn.wav");
+    ptr_sound->loadMusic("assets/sounds/Flat-construction-v2.wav");
     ptr_sound->playMusic();
     ptr_sound->setMusicVolume(200);
 
     ptr_window = std::make_unique<Window>("Flat Annihilation", options);
-    ptr_renderer = std::make_unique<Renderer>(*ptr_window, "Starjedi.ttf");
+    ptr_renderer = std::make_unique<Renderer>(*ptr_window, "assets/fonts/Starjedi.ttf");
     ptr_uiManager = std::make_unique<UIManager>(*ptr_renderer, *ptr_window);
     ptr_selectionManager = std::make_unique<SelectionManager>();
 
@@ -752,7 +752,14 @@ bool Game::spawnPendingUnitFromBuilding(Building* building)
 
     ptr_map->setGrid()[spawnX][spawnY].unit = ptr_units.back().get();
 
-    if (ptr_sound) ptr_sound->play("spawn");
+    /*
+     * Le son de création d'unité est réservé au joueur local.
+     * Les productions de l'IA restent silencieuses pour éviter un retour audio
+     * sur des actions qui ne sont pas directement déclenchées par le joueur.
+     */
+    if (ptr_sound && team == 0) {
+        ptr_sound->play("spawn");
+    }
 
     building->consumeSpawn();
     return true;

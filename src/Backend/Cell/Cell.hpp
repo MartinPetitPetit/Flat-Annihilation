@@ -2,7 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include "../Resource/Resource.hpp"
 #include <string>
-#include "ResourceManager.hpp"
+#include "../ResourceManager/ResourceManager.hpp"
 class Unit; // forward declaration to avoid circular dependency
 
 enum TERRAIN {

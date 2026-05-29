@@ -17,6 +17,64 @@
 #include "UIManager.hpp"
 #include <SDL2/SDL_image.h>
 #include <cstring>
+#include <iostream>
+#include <string>
+#include <vector>
+
+
+namespace
+{
+    void addImageCandidate(std::vector<std::string>& candidates, const std::string& path)
+    {
+        if (path.empty()) {
+            return;
+        }
+
+        for (const std::string& candidate : candidates) {
+            if (candidate == path) {
+                return;
+            }
+        }
+
+        candidates.push_back(path);
+    }
+
+    SDL_Surface* loadBackgroundSurface()
+    {
+        std::vector<std::string> candidates;
+
+        /*
+         * Accepte l'ancienne et la nouvelle organisation des assets.
+         * Fonctionne aussi si le jeu est lancé depuis build/bin/.
+         */
+        addImageCandidate(candidates, "assets/images/background.png");
+        addImageCandidate(candidates, "assets/background.png");
+        addImageCandidate(candidates, "background.png");
+        addImageCandidate(candidates, "src/assets/images/background.png");
+        addImageCandidate(candidates, "src/assets/background.png");
+        addImageCandidate(candidates, "src/background.png");
+        addImageCandidate(candidates, "../assets/images/background.png");
+        addImageCandidate(candidates, "../assets/background.png");
+        addImageCandidate(candidates, "../../assets/images/background.png");
+        addImageCandidate(candidates, "../../assets/background.png");
+
+        for (const std::string& candidate : candidates) {
+            SDL_Surface* surface = IMG_Load(candidate.c_str());
+
+            if (surface != nullptr) {
+                return surface;
+            }
+        }
+
+        std::cerr << "UIManager: impossible de charger background.png. Chemins testés:";
+        for (const std::string& candidate : candidates) {
+            std::cerr << " " << candidate;
+        }
+        std::cerr << "\n";
+
+        return nullptr;
+    }
+}
 
 UIManager::UIManager(Renderer& r, Window& w) : renderer(&r), window(&w) {}
 
@@ -114,7 +172,7 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 
     // Fond
     SDL_Texture* bg = nullptr;
-    SDL_Surface* s  = IMG_Load("background.png");
+    SDL_Surface* s  = loadBackgroundSurface();
     if (s)
 	{
 		bg = SDL_CreateTextureFromSurface(renderer->getSDLRenderer(), s);
@@ -183,6 +241,8 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 
 void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 {
+    (void)sound;
+
     const int RES_COUNT = 5;
     const int   res_w[RES_COUNT]      = { 600, 800, 1280, 1920, 2560 };
     const int   res_h[RES_COUNT]      = { 600, 600,  720, 1080, 1440 };
@@ -600,6 +660,8 @@ void UIManager::renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
 void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& players,
                                 int scale, int offsetX, int offsetY)
 {
+    (void)map;
+
     for (const Player* p : players) {
         if (!p) continue;
         for (const auto& b : p->getBuildings()) {
@@ -636,6 +698,10 @@ void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& play
 }
 void UIManager::renderMinimap(MAP& map, int MAP_W, int MAP_H)
 {
+    (void)map;
+    (void)MAP_W;
+    (void)MAP_H;
+
     // TODO
 }
 

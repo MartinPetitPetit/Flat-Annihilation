@@ -318,9 +318,10 @@ bool has_resource_near(const MAP& map, int cx, int cy, ResourceType resource, in
 			if (dist2 > r2) {
 				continue;
 			}
-			if (map[x][y].resource != nullptr) {
-                return true;
-            }
+			if (map[x][y].resource != nullptr &&
+				map[x][y].resource->getResourceType() == resource) {
+				return true;
+			}
 		}
 	}
 

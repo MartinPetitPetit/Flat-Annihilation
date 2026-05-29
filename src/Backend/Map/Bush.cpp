@@ -29,6 +29,8 @@ bool can_place_bush(const MAP& map, int x, int y)
 
 void place_bush(MAP& map, int x, int y, int berry_chance)
 {
+    (void)berry_chance;
+
     if (!can_place_bush(map, x, y)) {
         return;
     }
