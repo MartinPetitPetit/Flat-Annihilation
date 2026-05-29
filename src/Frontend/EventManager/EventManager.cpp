@@ -6,7 +6,10 @@ EventManager::EventManager(
     UIManager& u,
     std::vector<std::unique_ptr<Unit>>& unitList
 )
-    : selMgr(&s), renderer(&r), uiManager(&u), units(&unitList)
+: selMgr(&s),
+renderer(&r),
+uiManager(&u),
+units(&unitList)
 {
 }
 
@@ -14,33 +17,36 @@ void EventManager::pollEvents()
 {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-        case SDL_QUIT:
-            quit = true;
-            break;
+            case SDL_QUIT:
+                quit = true;
+                break;
 
-        case SDL_MOUSEBUTTONDOWN:
-            onMouseDown(event.button.x, event.button.y, event.button.button);
-            break;
+            case SDL_MOUSEBUTTONDOWN:
+                onMouseDown(event.button.x, event.button.y, event.button.button);
+                break;
 
-        case SDL_MOUSEBUTTONUP:
-            onMouseUp(event.button.x, event.button.y, event.button.button);
-            break;
+            case SDL_MOUSEBUTTONUP:
+                onMouseUp(event.button.x, event.button.y, event.button.button);
+                break;
 
-        case SDL_MOUSEMOTION:
-            onMouseMotion(event.motion.x, event.motion.y);
-            break;
+            case SDL_MOUSEMOTION:
+                onMouseMotion(event.motion.x, event.motion.y);
+                break;
 
-        case SDL_MOUSEWHEEL: {
-            int mx = 0;
-            int my = 0;
-            SDL_GetMouseState(&mx, &my);
-            onMouseWheel(mx, my, event.wheel.y);
-            break;
-        }
+            case SDL_MOUSEWHEEL: {
+                int mx = 0;
+                int my = 0;
+                SDL_GetMouseState(&mx, &my);
+                onMouseWheel(mx, my, event.wheel.y);
+                break;
+            }
 
-        case SDL_KEYDOWN:
-            onKeyDown(event.key.keysym.sym);
-            break;
+            case SDL_KEYDOWN:
+                onKeyDown(event.key.keysym.sym);
+                break;
+
+            default:
+                break;
         }
     }
 }
@@ -53,13 +59,21 @@ bool EventManager::isQuit() const
 bool EventManager::isAttackMoveModifierPressed() const
 {
     const Uint8* keyboardState = SDL_GetKeyboardState(nullptr);
-    return keyboardState[SDL_SCANCODE_A] != 0;
+
+    /*
+     * SDL_SCANCODE_A : touche A sur clavier QWERTY.
+     * SDL_SCANCODE_Q : touche physique équivalente sur certains claviers AZERTY.
+     */
+    return keyboardState[SDL_SCANCODE_A] != 0 ||
+    keyboardState[SDL_SCANCODE_Q] != 0;
 }
 
 void EventManager::onMouseDown(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
-        if (uiManager->handleHUDClick(x, y)) return;
+        if (uiManager->handleHUDClick(x, y)) {
+            return;
+        }
 
         if (uiManager->isInBuildingMode()) {
             pendingBuildX = x;
@@ -69,8 +83,8 @@ void EventManager::onMouseDown(int x, int y, int btn)
         }
 
         /*
-         * A + clic gauche : ordre offensif.
-         * On convertit directement écran -> cellule ici, comme pour le clic droit.
+         * A + clic gauche : mode offensif.
+         * On convertit la position écran en cellule de carte.
          */
         if (isAttackMoveModifierPressed() && !selMgr->getSelected().empty()) {
             int cellX = (x - renderer->getOffsetX()) / renderer->getScale();
@@ -90,7 +104,9 @@ void EventManager::onMouseDown(int x, int y, int btn)
     }
 
     if (btn == SDL_BUTTON_RIGHT) {
-        // Si des unités sont sélectionnées → ordre de déplacement manuel.
+        /*
+         * Clic droit avec unités sélectionnées : déplacement normal.
+         */
         if (!selMgr->getSelected().empty()) {
             int cellX = (x - renderer->getOffsetX()) / renderer->getScale();
             int cellY = (y - renderer->getOffsetY()) / renderer->getScale();
@@ -101,8 +117,11 @@ void EventManager::onMouseDown(int x, int y, int btn)
             return;
         }
 
-        // Sinon → déplacer la caméra.
+        /*
+         * Sinon, clic droit déplace la caméra.
+         */
         uiManager->cancelBuildingMode();
+
         dragging         = true;
         dragStartX       = x;
         dragStartY       = y;
@@ -114,6 +133,10 @@ void EventManager::onMouseDown(int x, int y, int btn)
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
+        /*
+         * Si le clic gauche servait à une commande spéciale,
+         * on ne lance pas de sélection au relâchement.
+         */
         if (leftClickConsumedByCommand) {
             leftClickConsumedByCommand = false;
             return;
@@ -130,11 +153,13 @@ void EventManager::onMouseUp(int x, int y, int btn)
             y,
             rawUnits,
             renderer->getOffsetX(),
-            renderer->getOffsetY(),
-            renderer->getScale()
+                        renderer->getOffsetY(),
+                        renderer->getScale()
         );
 
-        // Clic simple : potentielle sélection de bâtiment.
+        /*
+         * Clic simple : possible sélection de bâtiment.
+         */
         int dx = x - dragStartLeftX;
         int dy = y - dragStartLeftY;
 
@@ -159,7 +184,7 @@ void EventManager::onMouseMotion(int x, int y)
     if (dragging) {
         renderer->setOffset(
             dragStartOffsetX + (x - dragStartX),
-            dragStartOffsetY + (y - dragStartY)
+                            dragStartOffsetY + (y - dragStartY)
         );
     }
 }
@@ -171,7 +196,9 @@ void EventManager::onMouseWheel(int x, int y, int direction)
 
 void EventManager::onKeyDown(SDL_Keycode key)
 {
-    if (key == SDLK_ESCAPE) quit = true;
+    if (key == SDLK_ESCAPE) {
+        quit = true;
+    }
 
     if (key == SDLK_DELETE || key == SDLK_KP_PERIOD) {
         selMgr->deleteSelected(*units);

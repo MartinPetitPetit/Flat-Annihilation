@@ -8,15 +8,15 @@
 #include "../Renderer/Renderer.hpp"
 #include "../UIManager/UIManager.hpp"
 #include "../../Backend/Unit/Unit.hpp"
-#include "../../Backend/ResourceManager/ResourceManager.hpp"
 
 class EventManager
 {
 private:
-    SDL_Event         event    {};
-    SelectionManager* selMgr   { nullptr };
-    Renderer*         renderer { nullptr };
-    UIManager*        uiManager{ nullptr };
+    SDL_Event event {};
+
+    SelectionManager* selMgr    { nullptr };
+    Renderer*         renderer  { nullptr };
+    UIManager*        uiManager { nullptr };
 
     bool quit     { false };
     bool dragging { false };
@@ -29,9 +29,8 @@ private:
     int dragStartOffsetY { 0 };
 
     /*
-     * Utilisé quand le clic gauche est consommé par une commande spéciale
-     * comme A + clic gauche. Dans ce cas, le relâchement du clic ne doit pas
-     * lancer une sélection ni une sélection de bâtiment.
+     * Utilisé quand le clic gauche est consommé par une commande spéciale.
+     * Exemple : A + clic gauche pour le mode offensif.
      */
     bool leftClickConsumedByCommand { false };
 
@@ -50,23 +49,21 @@ public:
     bool isQuit() const;
 
     bool pendingBuild  { false };
-    int  pendingBuildX { 0     };
-    int  pendingBuildY { 0     };
+    int  pendingBuildX { 0 };
+    int  pendingBuildY { 0 };
     void consumeBuild() { pendingBuild = false; }
 
     bool pendingMove  { false };
-    int  pendingMoveX { 0     };
-    int  pendingMoveY { 0     };
+    int  pendingMoveX { 0 };
+    int  pendingMoveY { 0 };
     void consumeMove() { pendingMove = false; }
 
     /*
      * A + clic gauche : ordre de déplacement offensif.
-     * Les soldats avancent vers la cellule cliquée et engagent les ennemis
-     * rencontrés pendant le trajet.
      */
     bool pendingOffensiveMove  { false };
-    int  pendingOffensiveMoveX { 0     };
-    int  pendingOffensiveMoveY { 0     };
+    int  pendingOffensiveMoveX { 0 };
+    int  pendingOffensiveMoveY { 0 };
     void consumeOffensiveMove() { pendingOffensiveMove = false; }
 
     bool pendingBuildingSelect  { false };
