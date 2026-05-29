@@ -1,5 +1,21 @@
+/*
+ * Frontend/EventManager/EventManager.cpp
+ *
+ * Rôle du fichier :
+ * Reads SDL events and converts mouse, keyboard, camera, build, movement, and attack-move inputs into game commands.
+ *
+ * Notes de lecture :
+ * Ce module transforme les entrées SDL en intentions de jeu : sélection, déplacement, construction, attaque et caméra.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "EventManager.hpp"
 
+/*
+ * Constructeur : garde des pointeurs vers les gestionnaires nécessaires.
+ * L'EventManager ne possède pas ces objets, il les utilise seulement.
+ */
 EventManager::EventManager(
     SelectionManager& s,
     Renderer& r,
@@ -13,6 +29,10 @@ units(&unitList)
 {
 }
 
+/*
+ * Lit tous les événements SDL disponibles et les redirige vers
+ * les méthodes spécialisées selon leur type.
+ */
 void EventManager::pollEvents()
 {
     while (SDL_PollEvent(&event)) {
@@ -51,11 +71,18 @@ void EventManager::pollEvents()
     }
 }
 
+/*
+ * Indique au game loop si une demande de fermeture a été reçue.
+ */
 bool EventManager::isQuit() const
 {
     return quit;
 }
 
+/*
+ * Vérifie si la touche utilisée pour l'ordre offensif est maintenue.
+ * Le test accepte A et Q pour mieux fonctionner avec QWERTY et AZERTY.
+ */
 bool EventManager::isAttackMoveModifierPressed() const
 {
     const Uint8* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -68,6 +95,10 @@ bool EventManager::isAttackMoveModifierPressed() const
     keyboardState[SDL_SCANCODE_Q] != 0;
 }
 
+/*
+ * Gère le début d'une action souris : clic HUD, placement,
+ * déplacement offensif, sélection ou déplacement de caméra.
+ */
 void EventManager::onMouseDown(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
@@ -130,6 +161,9 @@ void EventManager::onMouseDown(int x, int y, int btn)
     }
 }
 
+/*
+ * Termine les actions souris : validation de sélection ou arrêt du drag caméra.
+ */
 void EventManager::onMouseUp(int x, int y, int btn)
 {
     if (btn == SDL_BUTTON_LEFT) {
@@ -175,6 +209,9 @@ void EventManager::onMouseUp(int x, int y, int btn)
     }
 }
 
+/*
+ * Met à jour le rectangle de sélection ou le déplacement de la caméra.
+ */
 void EventManager::onMouseMotion(int x, int y)
 {
     if (selMgr->getIsDragging()) {
@@ -189,11 +226,17 @@ void EventManager::onMouseMotion(int x, int y)
     }
 }
 
+/*
+ * Transmet la molette au renderer pour zoomer autour de la souris.
+ */
 void EventManager::onMouseWheel(int x, int y, int direction)
 {
     renderer->applyZoom(x, y, direction);
 }
 
+/*
+ * Gère les raccourcis clavier globaux comme quitter ou supprimer.
+ */
 void EventManager::onKeyDown(SDL_Keycode key)
 {
     if (key == SDLK_ESCAPE) {

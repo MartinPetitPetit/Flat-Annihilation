@@ -1,3 +1,15 @@
+/*
+ * Backend/ResourceManager/ResourceManager.cpp
+ *
+ * Rôle du fichier :
+ * Implements the singleton texture manager, path resolution, compatibility search, caching, and cleanup.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module ResourceManager. Il charge, résout, met en cache et libère les textures SDL.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "ResourceManager.hpp"
 
 #include <SDL2/SDL_error.h>

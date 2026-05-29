@@ -1,3 +1,15 @@
+/*
+ * Backend/Unit/Unit.cpp
+ *
+ * Rôle du fichier :
+ * Implements base unit movement, offensive behavior, attack parameters, selection, target handling, and rendering.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Unit. Il décrit les unités mobiles, leur IA, leur combat, leur déplacement et leur rendu.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Unit.hpp"
 #include "../../Frontend/Renderer/Renderer.hpp"
 

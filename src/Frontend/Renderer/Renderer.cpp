@@ -1,3 +1,15 @@
+/*
+ * Frontend/Renderer/Renderer.cpp
+ *
+ * Rôle du fichier :
+ * Wraps SDL rendering operations, font loading, map drawing, zooming, viewport management, and simple drawing helpers.
+ *
+ * Notes de lecture :
+ * Ce module centralise le rendu SDL afin que le reste du frontend n'appelle pas directement toutes les primitives bas niveau.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Renderer.hpp"
 #include "../../Backend/ResourceManager/ResourceManager.hpp"
 
@@ -6,6 +18,10 @@
 #include <string>
 #include <vector>
 
+/*
+ * Fonctions internes au fichier : elles servent surtout à trouver une police
+ * même si le jeu est lancé depuis un autre dossier de travail.
+ */
 namespace
 {
     void addCandidate(std::vector<std::string>& candidates, const std::string& path)
@@ -64,6 +80,9 @@ namespace
     }
 }
 
+/*
+ * Crée le renderer SDL, l'enregistre dans le ResourceManager et charge la police.
+ */
 Renderer::Renderer(Window& window, const char* font_path)
 {
     sdlRenderer = SDL_CreateRenderer(
@@ -76,28 +95,43 @@ Renderer::Renderer(Window& window, const char* font_path)
 }
 
 
+/*
+ * Libère les ressources SDL détenues par le renderer.
+ */
 Renderer::~Renderer()
 {
     if (font)        TTF_CloseFont(font);
     if (sdlRenderer) SDL_DestroyRenderer(sdlRenderer);
 }
 
+/*
+ * Efface l'image courante avant de dessiner une nouvelle frame.
+ */
 void Renderer::clear()
 {
     SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sdlRenderer);
 }
 
+/*
+ * Affiche à l'écran tout ce qui a été dessiné pendant la frame.
+ */
 void Renderer::present()
 {
     SDL_RenderPresent(sdlRenderer);
 }
 
+/*
+ * Copie une texture SDL vers la cible de rendu.
+ */
 void Renderer::drawTexture(SDL_Texture* tex, SDL_Rect* src, SDL_Rect* dst)
 {
     SDL_RenderCopy(sdlRenderer, tex, src, dst);
 }
 
+/*
+ * Dessine un rectangle rempli ou seulement sa bordure.
+ */
 void Renderer::drawRect(const SDL_Rect& rect, SDL_Color color, bool filled)
 {
     SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_BLEND);
@@ -106,6 +140,9 @@ void Renderer::drawRect(const SDL_Rect& rect, SDL_Color color, bool filled)
     else        SDL_RenderDrawRect(sdlRenderer, &rect);
 }
 
+/*
+ * Dessine un disque simple ligne par ligne.
+ */
 void Renderer::drawFilledCircle(int cx, int cy, int radius, SDL_Color color)
 {
     if (radius <= 0) {
@@ -136,6 +173,9 @@ void Renderer::drawFilledCircle(int cx, int cy, int radius, SDL_Color color)
  * ============================================================
  */
 
+/*
+ * Dessine un texte blanc avec la police chargée.
+ */
 void Renderer::drawText(const char* text, int x, int y)
 {
     if (!font) return;
@@ -148,6 +188,10 @@ void Renderer::drawText(const char* text, int x, int y)
     SDL_DestroyTexture(tex);
 }
 
+/*
+ * Dessine la carte avec un niveau de détail adapté au zoom.
+ * À faible zoom, plusieurs cellules sont regroupées pour améliorer les performances.
+ */
 void Renderer::drawMap(const MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& options)
 {
     int realWidth = static_cast<int>(map.size());
@@ -268,6 +312,9 @@ void Renderer::drawMap(const MAP& map, int MAP_W, int MAP_H, DISPLAY_OPTIONS& op
         }
     }
 }
+/*
+ * Modifie le zoom tout en gardant la cellule sous la souris au même endroit visuel.
+ */
 void Renderer::applyZoom(int mouseX, int mouseY, int direction)
 {
     int oldScale = scale;
@@ -276,11 +323,17 @@ void Renderer::applyZoom(int mouseX, int mouseY, int direction)
     offsetX = mouseX - (mouseX - offsetX) * scale / oldScale;
     offsetY = mouseY - (mouseY - offsetY) * scale / oldScale;
 }
+/*
+ * Met à jour la zone de rendu après un changement de résolution.
+ */
 void Renderer::updateViewport(int w, int h) {
     SDL_RenderSetLogicalSize(sdlRenderer, 0, 0); // désactive le scaling automatique
     SDL_Rect vp = { 0, 0, w, h };
     SDL_RenderSetViewport(sdlRenderer, &vp);
 }
+/*
+ * Change le décalage caméra utilisé pour convertir carte -> écran.
+ */
 void Renderer::setOffset(int x, int y) { offsetX = x; offsetY = y; }
 int  Renderer::getOffsetX() const      { return offsetX; }
 int  Renderer::getOffsetY() const      { return offsetY; }

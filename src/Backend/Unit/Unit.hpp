@@ -1,3 +1,15 @@
+/*
+ * Backend/Unit/Unit.hpp
+ *
+ * Rôle du fichier :
+ * Declares the base Unit class, movement state, combat API, offensive commands, and rendering interface.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Unit. Il décrit les unités mobiles, leur IA, leur combat, leur déplacement et leur rendu.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include "../Entity/Entity.hpp"

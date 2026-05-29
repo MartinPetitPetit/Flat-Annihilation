@@ -1,5 +1,20 @@
+/*
+ * Frontend/Window/Window.cpp
+ *
+ * Rôle du fichier :
+ * Creates and manages the SDL window, including size, fullscreen mode, resizing, and validation.
+ *
+ * Notes de lecture :
+ * Ce module encapsule la fenêtre SDL et les options d'affichage.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Window.hpp"
 
+/*
+ * Crée la fenêtre SDL avec les options initiales.
+ */
 Window::Window(const std::string& title, DISPLAY_OPTIONS opts)
     : options(opts)
 {
@@ -14,6 +29,9 @@ Window::Window(const std::string& title, DISPLAY_OPTIONS opts)
     );
 }
 
+/*
+ * Détruit la fenêtre SDL si elle existe.
+ */
 Window::~Window()
 {
     if (sdlWindow) SDL_DestroyWindow(sdlWindow);
@@ -24,6 +42,9 @@ DISPLAY_OPTIONS Window::getOptions()   const { return options;   }
 Vector2i        Window::getSize()      const { return { options.width, options.height }; }
 bool            Window::isValid()      const { return sdlWindow != nullptr; }
 
+/*
+ * Active ou désactive le plein écran et ajuste la taille de fenêtre.
+ */
 void Window::setFullscreen(bool fs)
 {
     options.fullscreen = fs;
@@ -40,6 +61,9 @@ void Window::setFullscreen(bool fs)
 
 }
 
+/*
+ * Redimensionne et recentre la fenêtre.
+ */
 void Window::resize(int width, int height)
 {
     printf("Window::resize appelé : %dx%d\n", width, height); // ← debug

@@ -1,3 +1,15 @@
+/*
+ * Backend/Resource/Resource.hpp
+ *
+ * Rôle du fichier :
+ * Declares resource types and the Resource class used by wood, food, and other map resources.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Resource. Il décrit les ressources récoltables et leur rendu.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include <SDL2/SDL.h>

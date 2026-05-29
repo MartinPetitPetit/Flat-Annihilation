@@ -1,3 +1,15 @@
+/*
+ * Frontend/Sound/Sound.cpp
+ *
+ * Rôle du fichier :
+ * Loads sound effects and music with path fallbacks, controls volume, plays samples, and frees SDL_mixer resources.
+ *
+ * Notes de lecture :
+ * Ce module encapsule SDL_mixer pour charger et jouer les sons du jeu.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Sound.hpp"
 #include <iostream>
 #include <algorithm>
@@ -5,6 +17,10 @@
 #include <vector>
 #include <filesystem>
 
+/*
+ * Helpers de chargement audio : ils testent plusieurs chemins connus
+ * sans faire de recherche trop large dans le projet.
+ */
 namespace
 {
     std::string filenameOnly(const std::string& path)
@@ -87,6 +103,9 @@ namespace
     }
 }
 
+/*
+ * Initialise SDL_mixer avec les paramètres audio du jeu.
+ */
 Sound::Sound()
 {
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
@@ -95,6 +114,9 @@ Sound::Sound()
 
 
 
+/*
+ * Charge un effet sonore et l'associe à un nom logique.
+ */
 bool Sound::load(const std::string& name, const std::string& path)
 {
     Mix_Chunk* chunk = loadChunkFromKnownAudioPaths(path);
@@ -105,6 +127,9 @@ bool Sound::load(const std::string& name, const std::string& path)
     return true;
 }
 
+/*
+ * Joue un effet sonore déjà chargé.
+ */
 void Sound::play(const std::string& name)
 {
     auto it = samples.find(name);
@@ -116,11 +141,17 @@ void Sound::play(const std::string& name)
     Mix_PlayChannel(-1, it->second, 0); // -1 = premier canal libre, 0 = pas de boucle
 }
 
+/*
+ * Définit le volume des effets sonores, limité à la plage SDL_mixer.
+ */
 void Sound::setVolume(int vol)
 {
     volume = std::clamp(vol, 0, 128);
 }
 
+/*
+ * Libère tous les sons, la musique et ferme le périphérique audio.
+ */
 Sound::~Sound()
 {
     for (auto& [name, chunk] : samples) {
@@ -131,6 +162,9 @@ Sound::~Sound()
     Mix_CloseAudio();
 }
 
+/*
+ * Charge la musique de fond depuis les chemins audio connus.
+ */
 bool Sound::loadMusic(const std::string& path)
 {
     music = loadMusicFromKnownAudioPaths(path);
@@ -140,17 +174,26 @@ bool Sound::loadMusic(const std::string& path)
     return true;
 }
 
+/*
+ * Lance la musique chargée. La valeur -1 signifie boucle infinie.
+ */
 void Sound::playMusic(int loops)
 {
     if (!music) return;
     Mix_PlayMusic(music, loops); // -1 = infini
 }
 
+/*
+ * Arrête immédiatement la musique de fond.
+ */
 void Sound::stopMusic()
 {
     Mix_HaltMusic();
 }
 
+/*
+ * Définit le volume de la musique.
+ */
 void Sound::setMusicVolume(int vol)
 {
     Mix_VolumeMusic(std::clamp(vol, 0, 256));

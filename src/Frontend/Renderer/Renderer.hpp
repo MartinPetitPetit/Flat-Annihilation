@@ -1,3 +1,15 @@
+/*
+ * Frontend/Renderer/Renderer.hpp
+ *
+ * Rôle du fichier :
+ * Declares the renderer API used to draw textures, text, map cells, shapes, and access SDL renderer resources.
+ *
+ * Notes de lecture :
+ * Ce module centralise le rendu SDL afin que le reste du frontend n'appelle pas directement toutes les primitives bas niveau.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -7,8 +19,13 @@
 #include "../../Backend/Map/Map.hpp"
 
 
+/*
+ * Wrapper SDL chargé du dessin 2D du jeu.
+ * Il conserve le renderer SDL, la police et les paramètres de caméra.
+ */
 class Renderer {
-	public:
+		/* Méthodes appelées par le reste du frontend pour dessiner et contrôler la vue. */
+public:
 		Renderer(Window& window, const char* font_path);
 		~Renderer();
 
@@ -34,7 +51,8 @@ class Renderer {
 
 		SDL_Renderer* getSDLRenderer() const;
 		TTF_Font* getFont() const;
-	private:
+		/* Ressources SDL et paramètres internes de zoom/caméra. */
+private:
 		SDL_Renderer* sdlRenderer { nullptr };
 		TTF_Font*     font        { nullptr };
 

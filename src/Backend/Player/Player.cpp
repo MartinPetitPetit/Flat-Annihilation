@@ -1,3 +1,15 @@
+/*
+ * Backend/Player/Player.cpp
+ *
+ * Rôle du fichier :
+ * Manages player identity, resources, building placement, free building creation, and dead building cleanup.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Player. Il gère les ressources, les bâtiments et les actions propres à un joueur.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Player.hpp"
 
 namespace

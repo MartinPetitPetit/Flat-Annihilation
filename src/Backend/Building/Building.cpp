@@ -1,3 +1,15 @@
+/*
+ * Backend/Building/Building.cpp
+ *
+ * Rôle du fichier :
+ * Defines building metadata, construction data, production queues, and production timing for buildings.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Building. Il décrit les bâtiments, leurs tailles, leurs coûts, leurs points de vie et leur production.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Building.hpp"
 #include <stdexcept>
 

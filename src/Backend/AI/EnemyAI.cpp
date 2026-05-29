@@ -1,13 +1,26 @@
+/*
+ * EnemyAI.cpp
+ * Implémente la logique de l'intelligence artificielle ennemie :
+ * économie, production, construction de caserne, défense et attaque.
+ */
+
 #include "EnemyAI.hpp"
 
+/* Dépendances nécessaires pour manipuler bâtiments et collecteurs. */
 #include "../Building/Building.hpp"
 #include "../Unit/Collector.hpp"
 
+/* Bibliothèques standards utilisées pour max() et les valeurs limites. */
 #include <algorithm>
 #include <limits>
 
+/*
+ * Les fonctions dans ce namespace anonyme sont privées à ce fichier.
+ * Elles servent de petits outils pour garder EnemyAI plus lisible.
+ */
 namespace
 {
+    /* Paramètres principaux de coût, rythme de décision et comportement stratégique. */
     constexpr int START_COLLECTORS = 5;
     constexpr int COLLECTOR_WOOD_COST = 20;
     constexpr int COLLECTOR_FOOD_COST = 40;
@@ -38,11 +51,16 @@ namespace
      */
     constexpr int MIN_ATTACK_SOLDIERS = 3;
 
+    /* Retourne la valeur absolue d'un entier sans dépendre d'une autre bibliothèque. */
     int absInt(int value)
     {
         return value < 0 ? -value : value;
     }
 
+    /*
+     * Distance de Chebyshev : utile sur une grille où le déplacement diagonal
+     * compte comme un seul pas.
+     */
     int chebyshevDistance(Coordinate a, Coordinate b)
     {
         int dx = absInt(a.getX() - b.getX());
@@ -50,6 +68,7 @@ namespace
         return std::max(dx, dy);
     }
 
+    /* Calcule une position centrale approximative pour viser un bâtiment. */
     Coordinate buildingCenter(const Building* building)
     {
         if (building == nullptr) {
@@ -64,6 +83,10 @@ namespace
         );
     }
 
+    /*
+     * Calcule la distance entre une case et la surface d'un bâtiment.
+     * Si la case est déjà dans le rectangle du bâtiment, la distance vaut 0.
+     */
     int distanceToBuilding(Coordinate pos, const Building* building)
     {
         if (building == nullptr) {
@@ -97,6 +120,7 @@ namespace
         return std::max(dx, dy);
     }
 
+    /* Vérifie si toutes les cases nécessaires sont libres pour placer un bâtiment. */
     bool canPlaceBuildingAt(const MAP& map, BuildingType type, int x, int y)
     {
         const BuildingDef& def = getBuildingDef(type);
@@ -124,6 +148,10 @@ namespace
         return true;
     }
 
+    /*
+     * Cherche progressivement autour d'un point une position valide pour construire.
+     * Le parcours par rayons évite de scanner toute la carte inutilement.
+     */
     bool findBuildingSpotNear(
         const MAP& map,
         BuildingType type,
@@ -160,6 +188,7 @@ namespace
         return false;
     }
 
+    /* Retourne le premier bâtiment vivant du type demandé pour un joueur donné. */
     Building* findFirstBuilding(Player& player, BuildingType type)
     {
         for (const auto& building : player.getBuildings()) {
@@ -171,6 +200,7 @@ namespace
         return nullptr;
     }
 
+    /* Choisit le bâtiment prioritaire à attaquer : Town Center puis autre bâtiment vivant. */
     Building* findPrimaryEnemyTarget(Player& player)
     {
         Building* townCenter = findFirstBuilding(player, BuildingType::TownCenter);
@@ -188,6 +218,10 @@ namespace
         return nullptr;
     }
 
+    /*
+     * Récupère les unités offensives de l'IA.
+     * Les collecteurs sont volontairement exclus des groupes d'attaque.
+     */
     std::vector<Unit*> collectSoldiers(
         std::vector<std::unique_ptr<Unit>>& units,
         int team
@@ -223,6 +257,7 @@ namespace
         return soldiers;
     }
 
+    /* Compte les unités adverses dans un rayon autour d'un bâtiment de référence. */
     int countEnemyUnitsNearBase(
         const std::vector<std::unique_ptr<Unit>>& units,
         int aiTeam,
@@ -254,6 +289,7 @@ namespace
         return count;
     }
 
+    /* Trouve l'unité ennemie la plus proche d'une base dans un rayon donné. */
     Unit* findClosestEnemyUnitNearBase(
         const std::vector<std::unique_ptr<Unit>>& units,
         int aiTeam,
@@ -293,6 +329,7 @@ namespace
         return best;
     }
 
+    /* Trouve l'unité ennemie la plus proche d'un point de la carte. */
     Unit* findClosestEnemyUnitToPoint(
         const std::vector<std::unique_ptr<Unit>>& units,
         int aiTeam,
@@ -323,6 +360,7 @@ namespace
         return best;
     }
 
+    /* Envoie chaque soldat valide vers une destination offensive commune. */
     void sendSoldiersToTarget(
         const std::vector<Unit*>& soldiers,
         Coordinate target,
@@ -342,6 +380,10 @@ namespace
         }
     }
 
+    /*
+     * Ajoute un collecteur à la file du Town Center si les ressources et la file le permettent.
+     * En cas d'échec après paiement, les ressources sont remboursées.
+     */
     bool queueCollector(Player& player, Building* townCenter)
     {
         if (townCenter == nullptr) {
@@ -369,6 +411,10 @@ namespace
         return true;
     }
 
+    /*
+     * Ajoute un soldat à la file de la caserne si l'IA possède assez de nourriture.
+     * La nourriture est remboursée si la mise en file échoue.
+     */
     bool queueSoldier(Player& player, Building* barracks)
     {
         if (barracks == nullptr) {
@@ -391,6 +437,7 @@ namespace
         return true;
     }
 
+    /* Cherche un emplacement proche du Town Center et tente d'y construire une caserne. */
     bool tryBuildBarracksNearTownCenter(MAP& map, Player& player, Building* townCenter)
     {
         if (townCenter == nullptr) {
@@ -411,6 +458,10 @@ namespace
         return player.placeBuilding(BuildingType::Barracks, buildX, buildY, map);
     }
 
+    /*
+     * Détermine combien de soldats l'IA souhaite avoir avant ou pendant une offensive.
+     * Le calcul dépend de la présence ennemie près de la base du joueur et de l'armée du joueur.
+     */
     int desiredSoldierCountForAttack(
         const std::vector<std::unique_ptr<Unit>>& units,
         int aiTeam,
@@ -443,6 +494,9 @@ namespace
     }
 }
 
+/*
+ * Analyse toutes les unités vivantes et produit les compteurs utilisés par les décisions de l'IA.
+ */
 EnemyAI::Coefficients EnemyAI::computeCoefficients(
     const std::vector<std::unique_ptr<Unit>>& units,
     int playerTeam,
@@ -486,6 +540,10 @@ EnemyAI::Coefficients EnemyAI::computeCoefficients(
     return c;
 }
 
+/*
+ * Fonction principale appelée par la boucle de jeu pour mettre à jour une IA ennemie.
+ * Elle vérifie l'indice du joueur IA et évite de recalculer la stratégie à chaque tick.
+ */
 void EnemyAI::updateSimpleEnemy(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,
@@ -525,6 +583,10 @@ void EnemyAI::updateSimpleEnemy(
     );
 }
 
+/*
+ * Décide quoi produire ou construire : collecteurs, caserne et soldats.
+ * La priorité change si la base ennemie est menacée par le joueur.
+ */
 void EnemyAI::updateEconomyAndProduction(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,
@@ -633,6 +695,10 @@ void EnemyAI::updateEconomyAndProduction(
     }
 }
 
+/*
+ * Donne les ordres militaires aux soldats de l'IA.
+ * La défense de la base passe avant l'attaque de la base du joueur.
+ */
 void EnemyAI::updateTroopControl(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,

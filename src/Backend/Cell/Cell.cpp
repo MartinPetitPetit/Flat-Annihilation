@@ -1,3 +1,15 @@
+/*
+ * Backend/Cell/Cell.cpp
+ *
+ * Rôle du fichier :
+ * Initializes map cells and renders the cell terrain texture through the resource manager.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Cell. Il décrit une case de la carte et les éléments qui peuvent y être présents.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Cell.hpp"
 
 

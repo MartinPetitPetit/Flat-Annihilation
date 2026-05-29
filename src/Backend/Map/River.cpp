@@ -1,3 +1,15 @@
+/*
+ * Backend/Map/River.cpp
+ *
+ * Rôle du fichier :
+ * Generates organic river networks from mountain springs, valley fields, confluences, and lake connections.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Map. Il participe à la génération procédurale, à la structure de la carte ou aux anciens points de compatibilité.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Map.hpp"
 
 #include <cstdlib>

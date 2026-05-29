@@ -1,3 +1,15 @@
+/*
+ * Backend/Unit/Collector.cpp
+ *
+ * Rôle du fichier :
+ * Implements collector AI as a state machine for searching, moving, gathering, depositing, and rendering.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Unit. Il décrit les unités mobiles, leur IA, leur combat, leur déplacement et leur rendu.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Collector.hpp"
 
 #include "../Map/Map.hpp"

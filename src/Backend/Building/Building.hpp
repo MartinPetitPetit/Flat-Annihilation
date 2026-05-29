@@ -1,3 +1,15 @@
+/*
+ * Backend/Building/Building.hpp
+ *
+ * Rôle du fichier :
+ * Declares building types, building definitions, unit production kinds, and the Building class interface.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Building. Il décrit les bâtiments, leurs tailles, leurs coûts, leurs points de vie et leur production.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include <string>

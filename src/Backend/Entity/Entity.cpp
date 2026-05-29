@@ -1,3 +1,15 @@
+/*
+ * Backend/Entity/Entity.cpp
+ *
+ * Rôle du fichier :
+ * Implements common entity behavior such as health, damage, healing, identity, team, and position access.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Entity. Il sert de base commune pour les objets du jeu qui ont une position, une équipe et des points de vie.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Entity.hpp"
 
 Entity::Entity()

@@ -1,3 +1,15 @@
+/*
+ * Frontend/UIManager/UIManager.hpp
+ *
+ * Rôle du fichier :
+ * Declares the UI manager state and methods for HUD, menus, building mode, selected building, and UI click handling.
+ *
+ * Notes de lecture :
+ * Ce module dessine les menus, le HUD et les contrôles liés aux bâtiments et à la production.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include "../Renderer/Renderer.hpp"
@@ -8,6 +20,9 @@
 #include "../../Backend/Player/Player.hpp"
 #include "../../Backend/Unit/Unit.hpp"
 
+/*
+ * Gestionnaire de l'interface graphique : menus, HUD, boutons, mode bâtiment et sélection bâtiment.
+ */
 class UIManager {
     Renderer* renderer { nullptr };
     Window*   window   { nullptr };
@@ -25,6 +40,7 @@ class UIManager {
 
     // Bâtiment sélectionné
     Building*    selectedBuilding     { nullptr };
+    /* Interface appelée par le game loop et les gestionnaires d'entrée. */
 public:
     UIManager(Renderer& renderer, Window& window);
 
@@ -55,6 +71,7 @@ void renderHUD(const Player* localPlayer,
     int  showMainMenu(DISPLAY_OPTIONS& options, Sound& sound);
     void showOptionsMenu(DISPLAY_OPTIONS& options, Sound& sound);
 
+    /* Helpers internes de dessin et de positionnement du HUD. */
 private:
     void drawButton(const char* label, SDL_Rect rect, bool selected, bool disabled);
     void applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool fullscreen);

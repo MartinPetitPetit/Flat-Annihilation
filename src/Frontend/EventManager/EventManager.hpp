@@ -1,3 +1,15 @@
+/*
+ * Frontend/EventManager/EventManager.hpp
+ *
+ * Rôle du fichier :
+ * Declares the event manager interface, pending command flags, drag state, and input handlers.
+ *
+ * Notes de lecture :
+ * Ce module transforme les entrées SDL en intentions de jeu : sélection, déplacement, construction, attaque et caméra.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include <SDL2/SDL.h>
@@ -9,8 +21,13 @@
 #include "../UIManager/UIManager.hpp"
 #include "../../Backend/Unit/Unit.hpp"
 
+/*
+ * Gestionnaire d'événements du frontend.
+ * Il transforme les événements SDL en états consommables par la logique du jeu.
+ */
 class EventManager
 {
+    /* Détails internes : état SDL, pointeurs vers les autres gestionnaires et état de drag. */
 private:
     SDL_Event event {};
 
@@ -37,6 +54,7 @@ private:
     // Référence vers les unités de la scène.
     std::vector<std::unique_ptr<Unit>>* units { nullptr };
 
+    /* Interface publique utilisée par le game loop pour lire les commandes en attente. */
 public:
     EventManager(
         SelectionManager& selMgr,

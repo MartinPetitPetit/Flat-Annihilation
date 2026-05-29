@@ -1,3 +1,15 @@
+/*
+ * Backend/Pathing/Pathfinding.cpp
+ *
+ * Rôle du fichier :
+ * Implements the older A* pathfinding function and formation destination generation.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Pathing. Il regroupe les règles de déplacement, le calcul de chemin et les plans de déplacement de groupe.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "Map.hpp"
 #include "../Unit/Unit.hpp"
 #include <vector>

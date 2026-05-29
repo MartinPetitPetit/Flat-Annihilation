@@ -1,3 +1,15 @@
+/*
+ * Frontend/UIManager/UIManager.cpp
+ *
+ * Rôle du fichier :
+ * Draws menus, options, HUD panels, selected unit info, building controls, production queues, and building previews.
+ *
+ * Notes de lecture :
+ * Ce module dessine les menus, le HUD et les contrôles liés aux bâtiments et à la production.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 /*-Renderer* renderer
  *
  - *ResourceManager* resMgr
@@ -22,6 +34,9 @@
 #include <vector>
 
 
+/*
+ * Helpers internes pour charger l'image de fond du menu depuis plusieurs chemins possibles.
+ */
 namespace
 {
     void addImageCandidate(std::vector<std::string>& candidates, const std::string& path)
@@ -76,8 +91,14 @@ namespace
     }
 }
 
+/*
+ * Connecte l'interface utilisateur au renderer et à la fenêtre.
+ */
 UIManager::UIManager(Renderer& r, Window& w) : renderer(&r), window(&w) {}
 
+/*
+ * Met à jour les valeurs affichées dans le HUD.
+ */
 void UIManager::setHUDStats(int fps, int tps, Uint64 tick, int tickRateVal)
 {
     currentFPS = fps;
@@ -86,16 +107,25 @@ void UIManager::setHUDStats(int fps, int tps, Uint64 tick, int tickRateVal)
     tickRate   = tickRateVal;
 }
 
+/*
+ * Indique si le jeu est actuellement en pause via le HUD.
+ */
 bool UIManager::isGamePaused() const { return gamePaused; }
 
 // ---------- Helpers HUD ----------
 
+/*
+ * Dessine un rectangle standard de HUD avec fond et bordure.
+ */
 void UIManager::drawHUDRect(SDL_Rect r, SDL_Color fill, SDL_Color border)
 {
     renderer->drawRect(r, fill,   true);
     renderer->drawRect(r, border, false);
 }
 
+/*
+ * Dessine du texte HUD avec la police du renderer.
+ */
 void UIManager::drawHUDText(const char* text, int x, int y, SDL_Color color)
 {
     if (!renderer->getFont()) return;
@@ -134,6 +164,9 @@ SDL_Rect UIManager::getHUDBuildingRect() const
     int h = window->getOptions().height;
     return { 282, h - 70, w - 284, 70 };
 }
+/*
+ * Dessine un bouton de menu avec état normal, sélectionné ou désactivé.
+ */
 void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool disabled)
 {
     SDL_Color bg  = disabled  ? SDL_Color{20,20,20,120}
@@ -160,6 +193,9 @@ void UIManager::drawButton(const char* label, SDL_Rect rect, bool selected, bool
     SDL_DestroyTexture(tex);
 }
 
+/*
+ * Affiche le menu principal et retourne le choix du joueur.
+ */
 int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
 {
     const int   N      = 3;
@@ -239,6 +275,9 @@ int UIManager::showMainMenu(DISPLAY_OPTIONS& options, Sound& sound)
     return result;
 }
 
+/*
+ * Affiche le menu d'options pour résolution et plein écran.
+ */
 void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 {
     (void)sound;
@@ -359,6 +398,9 @@ void UIManager::showOptionsMenu(DISPLAY_OPTIONS& options,Sound& sound)
 }
 
 
+/*
+ * Dessine le HUD complet : stats, ressources, temps, boutons, sélection, bâtiments et production.
+ */
 void UIManager::renderHUD(const Player* localPlayer, const std::vector<Unit*>& selectedUnits)
 {
     int w = window->getOptions().width;
@@ -638,6 +680,9 @@ Building* UIManager::getSelectedBuilding() const { return selectedBuilding; }
 void UIManager::selectBuilding(Building* b)       { selectedBuilding = b; inBuildingMode = false; }
 void UIManager::clearBuildingSelection()          { selectedBuilding = nullptr; }
 
+/*
+ * Dessine l'aperçu transparent du bâtiment avant placement.
+ */
 void UIManager::renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
                                     int scale, int offsetX, int offsetY)
 {
@@ -657,6 +702,9 @@ void UIManager::renderBuildingGhost(int mouseX, int mouseY, BuildingType type,
     renderer->drawRect(ghost, { 255, 220, 0, 200 }, false);
 }
 
+/*
+ * Dessine les bâtiments des joueurs sur la carte.
+ */
 void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& players,
                                 int scale, int offsetX, int offsetY)
 {
@@ -696,6 +744,9 @@ void UIManager::renderBuildings(const MAP& map, const std::vector<Player*>& play
         }
     }
 }
+/*
+ * Emplacement réservé pour une future minimap.
+ */
 void UIManager::renderMinimap(MAP& map, int MAP_W, int MAP_H)
 {
     (void)map;
@@ -705,16 +756,25 @@ void UIManager::renderMinimap(MAP& map, int MAP_W, int MAP_H)
     // TODO
 }
 
+/*
+ * Emplacement réservé pour un futur panneau de sélection détaillé.
+ */
 void UIManager::renderSelectionPanel()
 {
     // TODO
 }
 
+/*
+ * Affiche le rectangle de sélection pendant le drag.
+ */
 void UIManager::renderDragRect(SelectionManager& sel)
 {
     if (!sel.getIsDragging()) return;
     renderer->drawRect(sel.getDragRect(), { 255, 255, 255, 120 }, false);
 }
+/*
+ * Interprète les clics sur les boutons du HUD et active les actions correspondantes.
+ */
 bool UIManager::handleHUDClick(int mx, int my)
 {
     SDL_Rect pauseRect = getHUDPauseRect();
@@ -777,6 +837,9 @@ bool UIManager::handleHUDClick(int mx, int my)
     return false;
 }
 
+/*
+ * Applique une résolution ou un mode plein écran à la fenêtre et au renderer.
+ */
 void UIManager::applyResolution(DISPLAY_OPTIONS& options, int w, int h, bool fullscreen)
 {
     printf("applyResolution appelé : %dx%d fs=%d\n", w, h, fullscreen); // ← debug

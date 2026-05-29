@@ -1,3 +1,15 @@
+/*
+ * Backend/Map/Map.cpp
+ *
+ * Rôle du fichier :
+ * Builds the procedural map, scales generation settings, exposes map helpers, and places starting entities.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Map. Il participe à la génération procédurale, à la structure de la carte ou aux anciens points de compatibilité.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>

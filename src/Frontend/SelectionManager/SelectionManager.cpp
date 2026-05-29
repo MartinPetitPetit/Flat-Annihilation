@@ -1,8 +1,24 @@
+/*
+ * Frontend/SelectionManager/SelectionManager.cpp
+ *
+ * Rôle du fichier :
+ * Implements unit selection through click and drag rectangles, limited to local player units.
+ *
+ * Notes de lecture :
+ * Ce module garde l'état de sélection des unités contrôlables par le joueur local.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "SelectionManager.hpp"
 
 #include <algorithm>
 #include <cmath>
 
+/*
+ * Helpers locaux : ils limitent la sélection aux unités du joueur humain
+ * et convertissent la position carte d'une unité en position écran.
+ */
 namespace
 {
     constexpr int LOCAL_PLAYER_TEAM = 0;
@@ -21,6 +37,9 @@ namespace
     }
 }
 
+/*
+ * Démarre une sélection par rectangle.
+ */
 void SelectionManager::startDrag(int x, int y)
 {
     isDragging = true;
@@ -28,6 +47,9 @@ void SelectionManager::startDrag(int x, int y)
     dragRect   = { x, y, 0, 0 };
 }
 
+/*
+ * Met à jour la taille du rectangle de sélection pendant le mouvement souris.
+ */
 void SelectionManager::updateDrag(int x, int y)
 {
     if (!isDragging) {
@@ -40,6 +62,9 @@ void SelectionManager::updateDrag(int x, int y)
     dragRect.h = std::abs(y - dragStart.y);
 }
 
+/*
+ * Termine la sélection : clic simple ou sélection de toutes les unités dans le rectangle.
+ */
 void SelectionManager::endDrag(
     int x,
     int y,
@@ -86,6 +111,9 @@ void SelectionManager::endDrag(
     }
 }
 
+/*
+ * Sélectionne l'unité contrôlable la plus proche du clic.
+ */
 void SelectionManager::tryClickSelect(
     int x,
     int y,
@@ -124,6 +152,9 @@ void SelectionManager::tryClickSelect(
     }
 }
 
+/*
+ * Supprime les unités actuellement sélectionnées de la liste de la scène.
+ */
 void SelectionManager::deleteSelected(std::vector<std::unique_ptr<Unit>>& units)
 {
     for (Unit* unit : selected) {
@@ -146,11 +177,17 @@ void SelectionManager::deleteSelected(std::vector<std::unique_ptr<Unit>>& units)
     selected.clear();
 }
 
+/*
+ * Retourne la liste modifiable des unités sélectionnées.
+ */
 std::vector<Unit*>& SelectionManager::getSelected()
 {
     return selected;
 }
 
+/*
+ * Désélectionne toutes les unités.
+ */
 void SelectionManager::clearSelection()
 {
     for (Unit* unit : selected) {

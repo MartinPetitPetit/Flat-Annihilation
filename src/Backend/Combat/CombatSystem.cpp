@@ -1,3 +1,8 @@
+/*
+ * Documentation du module CombatSystem.
+ * Ce fichier met à jour les attaques, applique les dégâts et nettoie les entités mortes.
+ */
+
 #include "CombatSystem.hpp"
 
 #include "../Building/Building.hpp"
@@ -5,13 +10,16 @@
 #include <algorithm>
 #include <cstdlib>
 
+/* Helpers privés au fichier : distances, recherche de cibles et nettoyage de la carte. */
 namespace
 {
+    /* Valeur absolue entière utilisée par les distances de grille. */
     int absInt(int value)
     {
         return value < 0 ? -value : value;
     }
 
+    /* Distance de Chebyshev : adaptée aux déplacements et aux portées sur une grille avec diagonales. */
     int chebyshevDistance(Coordinate a, Coordinate b)
     {
         int dx = absInt(a.getX() - b.getX());
@@ -19,6 +27,7 @@ namespace
         return std::max(dx, dy);
     }
 
+    /* Mesure la distance entre une position et le rectangle occupé par un bâtiment. */
     int distanceToBuilding(Coordinate pos, const Building* building)
     {
         if (building == nullptr) {
@@ -52,6 +61,7 @@ namespace
         return std::max(dx, dy);
     }
 
+    /* Cherche l’unité ennemie vivante la plus proche dans la portée de l’attaquant. */
     Unit* findEnemyUnitInRange(
         const Unit* attacker,
         const std::vector<std::unique_ptr<Unit>>& units,
@@ -86,6 +96,7 @@ namespace
         return bestTarget;
     }
 
+    /* Cherche le bâtiment ennemi vivant le plus proche dans la portée de l’attaquant. */
     Building* findEnemyBuildingInRange(
         const Unit* attacker,
         const std::vector<std::unique_ptr<Player>>& players,
@@ -128,6 +139,7 @@ namespace
         return bestTarget;
     }
 
+    /* Retire des cellules les pointeurs vers les unités déjà mortes. */
     void removeDeadUnitsFromMap(
         MAP& map,
         const std::vector<std::unique_ptr<Unit>>& units
@@ -150,6 +162,7 @@ namespace
 }
 
 
+/* Met à jour les attaques de toutes les unités capables de combattre. */
 void CombatSystem::update(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,
@@ -195,6 +208,7 @@ void CombatSystem::update(
 }
 
 // Par :
+/* Supprime les unités et bâtiments morts et libère leur occupation sur la carte. */
 bool CombatSystem::removeDeadEntities(
     MAP& map,
     std::vector<std::unique_ptr<Player>>& players,

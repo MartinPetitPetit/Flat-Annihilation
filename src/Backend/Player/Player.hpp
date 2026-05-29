@@ -1,3 +1,15 @@
+/*
+ * Backend/Player/Player.hpp
+ *
+ * Rôle du fichier :
+ * Declares the Player class, resources, building ownership, and building management functions.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Player. Il gère les ressources, les bâtiments et les actions propres à un joueur.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include <iostream>

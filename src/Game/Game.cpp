@@ -1,3 +1,15 @@
+/*
+ * Game.cpp
+ *
+ * Rôle général :
+ * - initialise SDL, la fenêtre, le renderer, le son et les managers ;
+ * - crée la carte, les joueurs et les bases de départ ;
+ * - orchestre la boucle principale du jeu ;
+ * - applique les commandes joueur, la simulation, le combat et le rendu.
+ *
+ * Important : ce fichier agit comme coordinateur central. Les détails
+ * spécialisés restent dans les modules Backend et Frontend.
+ */
 #include "Game.hpp"
 #include <iostream>
 #include "../Backend/Building/Building.hpp"
@@ -9,6 +21,11 @@
 
 namespace
 {
+    /*
+     * Vérifie si une unité peut apparaître sur une cellule précise.
+     * La cellule doit être dans la carte, libre, praticable, sans bâtiment,
+     * sans ressource et sans autre unité.
+     */
     bool canSpawnUnitAt(const MAP& map, int x, int y)
     {
         if (!in_map(map, x, y)) {
@@ -40,6 +57,11 @@ namespace
         return true;
     }
 
+    /*
+     * Cherche une cellule libre autour d'un bâtiment pour faire apparaître
+     * une unité produite. La recherche se fait par anneaux successifs autour
+     * de l'emprise du bâtiment.
+     */
     bool findSpawnCellNearBuilding(
         const MAP& map,
         const Building* building,
@@ -89,6 +111,11 @@ namespace
         return false;
     }
 
+    /*
+     * Cherche une cellule libre autour d'une cellule déjà occupée.
+     * Utilisé quand le joueur clique sur une unité ou une zone bloquée :
+     * l'ordre est redirigé vers une position voisine praticable.
+     */
     bool findFreeCellNearCell(
         const MAP& map,
         int centerX,
@@ -126,12 +153,20 @@ namespace
 
 }
 
+/*
+ * Constructeur : prépare les bibliothèques SDL et crée les managers
+ * nécessaires avant le lancement de la partie.
+ */
 Game::Game()
 {
     initializeSDL();
     initializeManagers();
 }
 
+/*
+ * Destructeur : libère les entités de jeu puis ferme proprement SDL,
+ * SDL_ttf et SDL_image.
+ */
 Game::~Game()
 {
     std::cout << "destruction de Game\n";
@@ -143,6 +178,10 @@ Game::~Game()
     shutdownSDL();
 }
 
+/*
+ * Initialise les sous-systèmes externes nécessaires au jeu : vidéo SDL,
+ * rendu de texte TTF et chargement d'images PNG.
+ */
 void Game::initializeSDL()
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -150,6 +189,11 @@ void Game::initializeSDL()
     IMG_Init(IMG_INIT_PNG);
 }
 
+/*
+ * Crée les objets principaux du Frontend : son, fenêtre, renderer, UI,
+ * sélection et gestionnaire d'événements. C'est aussi ici que les sons
+ * et la musique sont chargés.
+ */
 void Game::initializeManagers()
 {
     ptr_sound = std::make_unique<Sound>();
@@ -175,6 +219,9 @@ void Game::initializeManagers()
     );
 }
 
+/*
+ * Ferme les bibliothèques SDL dans l'ordre inverse de leur initialisation.
+ */
 void Game::shutdownSDL()
 {
     IMG_Quit();
@@ -182,6 +229,10 @@ void Game::shutdownSDL()
     SDL_Quit();
 }
 
+/*
+ * Lance le menu principal, puis initialise la carte et les joueurs si le
+ * joueur choisit un mode de jeu valide.
+ */
 void Game::startGame()
 {
     int choice = this->ptr_uiManager->showMainMenu(options, *ptr_sound);
@@ -198,6 +249,9 @@ void Game::startGame()
     run();
 }
 
+/*
+ * Demande les dimensions de la carte dans le terminal et crée l'objet Map.
+ */
 void Game::createMapFromInput()
 {
     std::cout << "taille de la carte : MAP_W MAP_H = ";
@@ -206,6 +260,10 @@ void Game::createMapFromInput()
     this->ptr_map = std::make_unique<Map>(MAP_W, MAP_H);
 }
 
+/*
+ * Crée le joueur humain et l'IA, puis demande au module Map de placer
+ * leurs bases initiales de chaque côté de la carte.
+ */
 void Game::createPlayersAndStartingBases(int menuChoice)
 {
     /*
@@ -249,6 +307,9 @@ void Game::createPlayersAndStartingBases(int menuChoice)
     }
 }
 
+/*
+ * Affiche dans le terminal les joueurs actuellement présents dans la partie.
+ */
 void Game::printPlayers() const
 {
     for (const auto& player : ptr_players) {
@@ -258,6 +319,10 @@ void Game::printPlayers() const
     }
 }
 
+/*
+ * Arrête la partie courante et libère les données liées à la carte,
+ * aux joueurs et aux unités.
+ */
 void Game::stopGame()
 {
     ptr_players.clear();
@@ -266,6 +331,11 @@ void Game::stopGame()
     running = false;
 }
 
+/*
+ * Boucle principale du jeu.
+ * Elle sépare la simulation à fréquence fixe, le rendu limité par FPS_CAP
+ * et la mise à jour des statistiques HUD.
+ */
 void Game::run()
 {
     Uint32 lastTick = SDL_GetTicks();
@@ -294,6 +364,10 @@ void Game::run()
     std::cout << "\n";
 }
 
+/*
+ * Lit les événements SDL puis transforme les demandes stockées par
+ * EventManager/UIManager en actions concrètes de jeu.
+ */
 void Game::processEventsAndCommands()
 {
     ptr_eventManager->pollEvents();
@@ -305,12 +379,19 @@ void Game::processEventsAndCommands()
     handleManualMoveOrder();
 }
 
+/*
+ * Regroupe les demandes de production venant du HUD.
+ */
 void Game::handleProductionRequests()
 {
     handleSoldierProductionRequest();
     handleCollectorProductionRequest();
 }
 
+/*
+ * Traite la production d'un soldat depuis une caserne sélectionnée.
+ * Le coût est payé avant l'ajout à la file, puis remboursé si la file refuse.
+ */
 void Game::handleSoldierProductionRequest()
 {
     if (!ptr_uiManager->pendingProduceUnit) {
@@ -340,6 +421,10 @@ void Game::handleSoldierProductionRequest()
     }
 }
 
+/*
+ * Traite la production d'un collecteur depuis le Town Center sélectionné.
+ * Les ressources sont vérifiées puis dépensées avant la mise en file.
+ */
 void Game::handleCollectorProductionRequest()
 {
     if (!ptr_uiManager->pendingProduceCollector) {
@@ -375,6 +460,10 @@ void Game::handleCollectorProductionRequest()
     }
 }
 
+/*
+ * Place un bâtiment demandé par le HUD en convertissant la position écran
+ * du clic en cellule de carte.
+ */
 void Game::handleBuildingPlacement()
 {
     if (!ptr_eventManager->pendingBuild || ptr_players.empty()) {
@@ -397,6 +486,10 @@ void Game::handleBuildingPlacement()
     ptr_eventManager->consumeBuild();
 }
 
+/*
+ * Sélectionne un bâtiment allié à partir d'un clic sur la carte.
+ * Si un bâtiment est sélectionné, la sélection d'unités est vidée.
+ */
 void Game::handleBuildingSelection()
 {
     if (!ptr_eventManager->pendingBuildingSelect || ptr_players.empty()) {
@@ -430,6 +523,10 @@ void Game::handleBuildingSelection()
     ptr_eventManager->consumeBuildingSelect();
 }
 
+/*
+ * Applique un ordre offensif aux unités sélectionnées capables d'attaquer.
+ * Les unités cherchent ensuite automatiquement les ennemis proches.
+ */
 void Game::handleOffensiveMoveOrder()
 {
     if (!ptr_eventManager->pendingOffensiveMove) {
@@ -464,6 +561,10 @@ void Game::handleOffensiveMoveOrder()
     ptr_eventManager->consumeOffensiveMove();
 }
 
+/*
+ * Applique un ordre de déplacement normal aux unités sélectionnées.
+ * Le mode offensif est annulé avant de créer le plan de groupe.
+ */
 void Game::handleManualMoveOrder()
 {
     if (!ptr_eventManager->pendingMove) {
@@ -496,6 +597,10 @@ void Game::handleManualMoveOrder()
     ptr_eventManager->consumeMove();
 }
 
+/*
+ * Exécute la simulation à fréquence fixe grâce à un accumulateur de temps.
+ * Cela permet de garder une logique stable même si le rendu varie.
+ */
 void Game::processFixedTicks(float& tickAccumulator, int& tickCount)
 {
     while (tickAccumulator >= TICK_DELAY) {
@@ -513,6 +618,9 @@ void Game::processFixedTicks(float& tickAccumulator, int& tickCount)
     }
 }
 
+/*
+ * Rend une frame seulement si la limite de FPS le permet.
+ */
 void Game::renderFrameIfNeeded(Uint32& lastFrame, int& frameCount)
 {
     Uint32 frameNow = SDL_GetTicks();
@@ -528,6 +636,10 @@ void Game::renderFrameIfNeeded(Uint32& lastFrame, int& frameCount)
     frameCount++;
 }
 
+/*
+ * Met à jour les statistiques visibles dans le HUD et dans le terminal
+ * une fois par seconde.
+ */
 void Game::updateStatsIfNeeded(Uint32& lastStatsTime, int& frameCount, int& tickCount)
 {
     Uint32 statsNow = SDL_GetTicks();
@@ -562,6 +674,10 @@ void Game::updateStatsIfNeeded(Uint32& lastStatsTime, int& frameCount, int& tick
     lastStatsTime = statsNow;
 }
 
+/*
+ * Tick principal de simulation : stratégie IA, pathing, IA des unités,
+ * mouvement, combat, nettoyage et production.
+ */
 void Game::update()
 {
     currentTick++;
@@ -578,6 +694,9 @@ void Game::update()
     updateBuildingProductionAndSpawns();
 }
 
+/*
+ * Met à jour la logique stratégique de toutes les IA ennemies.
+ */
 void Game::updateEnemyStrategy()
 {
     for (int i = 1; i < static_cast<int>(ptr_players.size()); i++) {
@@ -592,6 +711,10 @@ void Game::updateEnemyStrategy()
     }
 }
 
+/*
+ * Donne au système de déplacement de groupe l'occasion de gérer les
+ * recalculs et les échecs de déplacement.
+ */
 void Game::updateManualPathing()
 {
     MassPath::processRepathRequests(ptr_map->setGrid());
@@ -619,6 +742,9 @@ void Game::updateManualPathing()
     }
 }
 
+/*
+ * Met à jour l'IA individuelle de chaque unité vivante.
+ */
 void Game::updateUnitAI()
 {
     for (auto& unit : ptr_units) {
@@ -635,6 +761,9 @@ void Game::updateUnitAI()
     }
 }
 
+/*
+ * Avance les unités vers leur destination selon leur logique de mouvement.
+ */
 void Game::updateUnitMovement()
 {
     for (auto& unit : ptr_units) {
@@ -652,6 +781,9 @@ void Game::updateUnitMovement()
 
 
 
+/*
+ * Délègue la résolution des attaques au CombatSystem.
+ */
 void Game::updateCombat()
 {
     CombatSystem::update(
@@ -662,6 +794,10 @@ void Game::updateCombat()
         ptr_sound.get()
     );
 }
+/*
+ * Nettoie les unités et bâtiments détruits, puis corrige les sélections
+ * qui pointaient vers des entités mortes.
+ */
 void Game::cleanupDestroyedEntities()
 {
     bool hasDeadUnit = false;
@@ -692,6 +828,10 @@ void Game::cleanupDestroyedEntities()
     );
 }
 
+/*
+ * Avance les files de production des bâtiments et fait apparaître les
+ * unités prêtes dès qu'une cellule libre est disponible.
+ */
 void Game::updateBuildingProductionAndSpawns()
 {
     float dt = 1.0f / static_cast<float>(TICK_RATE);
@@ -717,6 +857,10 @@ void Game::updateBuildingProductionAndSpawns()
     }
 }
 
+/*
+ * Crée physiquement une unité produite par un bâtiment.
+ * Les collecteurs utilisent la classe Collector, les soldats la classe Unit.
+ */
 bool Game::spawnPendingUnitFromBuilding(Building* building)
 {
     int spawnX = 0;
@@ -765,6 +909,9 @@ bool Game::spawnPendingUnitFromBuilding(Building* building)
     return true;
 }
 
+/*
+ * Rend une frame complète : monde, unités, bâtiments, interface, puis present.
+ */
 void Game::renderFrame()
 {
     ptr_renderer->clear();
@@ -777,6 +924,9 @@ void Game::renderFrame()
     ptr_renderer->present();
 }
 
+/*
+ * Rend la carte avec les options actuelles de fenêtre.
+ */
 void Game::renderWorld()
 {
     DISPLAY_OPTIONS options = this->ptr_window->getOptions();
@@ -788,6 +938,9 @@ void Game::renderWorld()
     );
 }
 
+/*
+ * Rend toutes les unités présentes dans la partie.
+ */
 void Game::renderUnits()
 {
     for (auto& unit : ptr_units) {
@@ -804,6 +957,9 @@ void Game::renderUnits()
     }
 }
 
+/*
+ * Rend les bâtiments au-dessus du terrain et avec les couleurs d'équipe.
+ */
 void Game::renderBuildingsLayer()
 {
     ptr_uiManager->renderBuildings(
@@ -815,6 +971,10 @@ void Game::renderBuildingsLayer()
     );
 }
 
+/*
+ * Rend les éléments d'interface : rectangle de sélection, fantôme de
+ * bâtiment et HUD principal.
+ */
 void Game::renderUI()
 {
     ptr_uiManager->renderDragRect(*ptr_selectionManager);
@@ -840,6 +1000,10 @@ void Game::renderUI()
     );
 }
 
+/*
+ * Convertit une position écran en coordonnée de cellule selon le zoom
+ * et le décalage caméra actuels.
+ */
 Coordinate Game::screenToCell(int screenX, int screenY) const
 {
     int scale = ptr_renderer->getScale();
@@ -854,6 +1018,10 @@ Coordinate Game::screenToCell(int screenX, int screenY) const
 
 
 
+/*
+ * Ajuste une destination de déplacement si le joueur a cliqué sur une
+ * cellule occupée par un bâtiment ou une unité.
+ */
 Coordinate Game::resolveManualMoveTarget(Coordinate target) const
 {
     if (!in_map(ptr_map->getGrid(), target.getX(), target.getY())) {
@@ -893,6 +1061,10 @@ Coordinate Game::resolveManualMoveTarget(Coordinate target) const
     return target;
 }
 
+/*
+ * Convertit les unique_ptr<Player> en pointeurs bruts pour les fonctions
+ * de rendu qui ne prennent pas possession des objets.
+ */
 std::vector<Player*> Game::getRawPlayers() const
 {
     std::vector<Player*> rawPlayers;

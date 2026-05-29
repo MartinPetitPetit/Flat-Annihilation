@@ -1,3 +1,15 @@
+/*
+ * Backend/Map/Map.hpp
+ *
+ * Rôle du fichier :
+ * Declares the map grid type, generation configuration, terrain helpers, and procedural generation functions.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Map. Il participe à la génération procédurale, à la structure de la carte ou aux anciens points de compatibilité.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #pragma once
 
 #include <utility>

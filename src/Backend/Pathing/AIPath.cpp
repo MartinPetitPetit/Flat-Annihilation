@@ -1,3 +1,15 @@
+/*
+ * Backend/Pathing/AIPath.cpp
+ *
+ * Rôle du fichier :
+ * Implements A* pathfinding with exact or adjacent goal modes and step-by-step movement along computed paths.
+ *
+ * Notes de lecture :
+ * Ce fichier appartient au module Pathing. Il regroupe les règles de déplacement, le calcul de chemin et les plans de déplacement de groupe.
+ * Les commentaires ajoutés servent uniquement à expliquer le code.
+ * La logique originale du programme n'a pas été modifiée.
+ */
+
 #include "AIPath.hpp"
 
 #include "MovementRules.hpp"
